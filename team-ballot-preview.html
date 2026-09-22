@@ -1,0 +1,1154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Blacfox Star Player</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --ink:#111111;
+  --paper:#fbfaf7;
+  --paper-line:#e2ded7;
+  --navy:#171717;
+  --stamp:#c94727;
+  --gold:#ef661f;
+  --muted:#777872;
+  --white:#ffffff;
+  --shadow:0 24px 70px rgba(0,0,0,.44);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: var(--ink);
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(239,102,31,0.16), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(239,102,31,0.08), transparent 40%);
+  font-family:'Inter', sans-serif;
+  color: var(--ink);
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding: 42px 16px 72px;
+  overflow-x:hidden;
+}
+
+.app{ width:100%; max-width:560px; position:relative; }
+
+.app::before{
+  content:"";
+  position:absolute;
+  top:-42px;
+  left:0;
+  right:0;
+  height:3px;
+  background:linear-gradient(90deg,var(--gold),#ff9a3d,transparent 82%);
+}
+
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color: var(--gold);
+  margin:0 0 9px 2px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px rgba(239,102,31,.8);}
+
+h1{
+  font-family:'Space Grotesk', sans-serif;
+  color:#f4f2ec;
+  font-size:clamp(30px,6vw,38px);
+  margin:0 0 24px 2px;
+  letter-spacing:-0.035em;
+  line-height:1.05;
+}
+
+.header-row{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;}
+.live-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  color:#ffd0b0;border:1px solid rgba(239,102,31,.35);background:rgba(239,102,31,.08);
+  border-radius:999px;padding:7px 10px;font:600 10px 'IBM Plex Mono',monospace;
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+}
+.live-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:#5bc581;box-shadow:0 0 10px rgba(91,197,129,.9);}
+
+.card{
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 30px;
+  box-shadow: var(--shadow);
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.06);
+  animation: cardIn .28s ease both;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  top:0; left:28px; right:28px;
+  height:0;
+  border-top: 2px dashed var(--paper-line);
+}
+
+.screen-title{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:22px;
+  font-weight:700;
+  margin: 5px 0 6px;
+  color: var(--navy);
+  letter-spacing:-.025em;
+}
+.screen-sub{
+  font-size:14px;
+  color:#5a615e;
+  margin: 0 0 20px;
+  line-height:1.45;
+}
+
+.btn-row{ display:flex; flex-direction:column; gap:12px; margin-top: 6px;}
+
+.big-btn{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:16px;
+  padding:18px 20px;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  text-align:left;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  box-shadow:0 8px 18px rgba(28,61,74,.08);
+}
+.big-btn:hover{ transform: translateY(-2px); box-shadow:0 14px 26px rgba(28,61,74,.14); }
+.big-btn:active{ transform: translateY(0px) scale(0.99); }
+
+.big-btn.primary{ background: var(--navy); color:#fff; }
+.big-btn.ghost{ background:#fff; color: var(--navy); border:1.5px solid var(--paper-line); }
+.big-btn .arrow{ opacity:0.6; font-size:18px; }
+
+.name-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:10px;
+  margin-bottom: 18px;
+}
+@media (min-width: 420px){
+  .name-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+
+.name-pill{
+  font-family:'Inter', sans-serif;
+  font-weight:500;
+  font-size:14px;
+  padding:14px 8px;
+  border-radius:10px;
+  border:1.5px solid var(--paper-line);
+  background:#fff;
+  color: var(--ink);
+  cursor:pointer;
+  text-align:center;
+  transition: all .14s ease;
+  box-shadow:0 3px 0 rgba(22,28,31,.03);
+}
+.name-pill:hover{ border-color: var(--navy); transform:translateY(-1px); box-shadow:0 8px 16px rgba(28,61,74,.1); }
+.name-pill.selected{
+  background: var(--navy);
+  border-color: var(--navy);
+  color:#fff;
+}
+.name-pill:disabled{
+  opacity:0.35;
+  cursor:not-allowed;
+  text-decoration: line-through;
+}
+
+.name-pill.voted-tag{
+  font-size:10px;
+  display:block;
+  margin-top:2px;
+  font-family:'IBM Plex Mono',monospace;
+  letter-spacing:0.05em;
+}
+
+.confirm-box{
+  background:#fff;
+  border:1.5px solid var(--paper-line);
+  border-radius:10px;
+  padding:16px 18px;
+  margin-bottom:18px;
+  font-size:14px;
+}
+.confirm-box b{ color: var(--navy); }
+
+.actions{ display:flex; gap:10px; }
+.action-btn{
+  flex:1;
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:15px;
+  padding:13px 14px;
+  border-radius:9px;
+  border:none;
+  cursor:pointer;
+  transition:transform .14s ease, box-shadow .14s ease, opacity .14s ease;
+}
+.action-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 9px 18px rgba(22,28,31,.12);}
+.action-btn.confirm{ background: var(--stamp); color:#fff; }
+.action-btn.back{ background:#fff; color:#555; border:1.5px solid var(--paper-line); }
+.action-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+.link-back{
+  display:inline-block;
+  margin-top:16px;
+  font-size:13px;
+  color: var(--muted);
+  cursor:pointer;
+  text-decoration:underline;
+}
+
+/* pin entry */
+.pin-input{
+  width:100%;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:24px;
+  letter-spacing:0.5em;
+  text-align:center;
+  padding:14px 10px;
+  border-radius:9px;
+  border:1.5px solid var(--paper-line);
+  margin-bottom:14px;
+  outline:none;
+}
+.pin-input:focus{ border-color: var(--navy); }
+.pin-error{
+  color: var(--stamp);
+  font-size:13px;
+  margin: -6px 0 14px;
+  min-height: 16px;
+}
+
+/* stamp receipt */
+.stamp-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding: 10px 0 6px;
+}
+.stamp{
+  width:120px; height:120px;
+  border-radius:50%;
+  border: 4px solid var(--stamp);
+  color: var(--stamp);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing:0.08em;
+  transform: rotate(-12deg) scale(0.5);
+  opacity:0;
+  animation: stampIn .45s cubic-bezier(.2,1.6,.4,1) forwards;
+  margin-bottom: 18px;
+}
+@keyframes stampIn{
+  to{ transform: rotate(-12deg) scale(1); opacity:1; }
+}
+.receipt-line{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  color:#555;
+  text-align:center;
+  margin: 2px 0;
+}
+.receipt-name{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:19px;
+  font-weight:600;
+  color: var(--navy);
+  text-align:center;
+  margin: 6px 0 14px;
+}
+.voted-lobby{margin-top:6px;padding-top:18px;border-top:1px dashed var(--paper-line);}
+.lobby-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.lobby-title{font:700 15px 'Space Grotesk',sans-serif;color:var(--navy);}
+.lobby-count{font:600 11px 'IBM Plex Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.voted-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.voted-person{display:flex;align-items:center;gap:9px;padding:10px 11px;border:1px solid var(--paper-line);border-radius:9px;background:var(--white);font-size:13px;color:var(--ink);}
+.voted-person::before{content:"✓";display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border-radius:50%;background:var(--gold);color:#fff;font:700 11px 'IBM Plex Mono',monospace;}
+.voted-person.current{border-color:var(--gold);box-shadow:0 0 0 2px rgba(239,102,31,.1);}
+.lobby-wait{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.45;}
+.lobby-wait strong{color:var(--navy);}
+.vote-pulse{min-height:34px;display:flex;align-items:center;justify-content:center;margin:0 0 14px;padding:8px 12px;border-radius:9px;background:rgba(239,102,31,.1);border:1px solid rgba(239,102,31,.25);color:var(--navy);font:600 12px 'IBM Plex Mono',monospace;letter-spacing:.02em;opacity:0;transform:scale(.98);}
+.vote-pulse.show{animation:votePulse 1.1s ease both;}
+@keyframes votePulse{0%{opacity:0;transform:scale(.96)}18%{opacity:1;transform:scale(1.02)}35%{transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:scale(.99)}}
+@media (max-width:380px){.voted-grid{grid-template-columns:1fr;}}
+
+/* host dashboard */
+.stat-row{ display:flex; gap:10px; margin-bottom:18px; }
+.stat{
+  flex:1;
+  background:#fff;
+  border:1.5px solid var(--paper-line);
+  border-radius:9px;
+  padding:12px;
+  text-align:center;
+}
+.stat .num{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:22px;
+  font-weight:600;
+  color: var(--navy);
+}
+.stat .lbl{
+  font-size:11px;
+  color:#888;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+
+.bar-row{ margin-bottom:10px; }
+.bar-head{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  margin-bottom:4px;
+}
+.bar-head .cnt{ font-family:'IBM Plex Mono',monospace; color:var(--muted); }
+.bar-track{
+  height:9px;
+  background: var(--paper-line);
+  border-radius:5px;
+  overflow:hidden;
+}
+.bar-fill{
+  height:100%;
+  background: linear-gradient(90deg, var(--navy), var(--gold));
+  border-radius:5px;
+  transition: width .4s ease;
+}
+
+.roster-status{
+  display:flex; flex-wrap:wrap; gap:6px; margin-top: 4px;
+}
+.status-chip{
+  font-size:11px;
+  font-family:'IBM Plex Mono',monospace;
+  padding:4px 8px;
+  border-radius:6px;
+  background:#fff;
+  border:1px solid var(--paper-line);
+  color:#999;
+}
+.status-chip.signed{ color: var(--navy); border-color: var(--navy); }
+.status-chip.voted{ background: var(--navy); color:#fff; border-color:var(--navy); }
+
+.host-danger{
+  margin-top:22px;
+  padding-top:16px;
+  border-top: 1px dashed var(--paper-line);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.reset-btn{
+  background:none;
+  border:1.5px solid var(--stamp);
+  color: var(--stamp);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  padding:8px 12px;
+  border-radius:7px;
+  cursor:pointer;
+}
+.stop-btn{
+  background: var(--stamp);
+  border:none;
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  padding:12px 16px;
+  border-radius:9px;
+  cursor:pointer;
+  width:100%;
+  margin-bottom:16px;
+}
+.closed-banner{
+  background:#efe6d8;
+  border:1.5px solid var(--gold);
+  color:#7a5c17;
+  font-size:13px;
+  padding:10px 14px;
+  border-radius:9px;
+  margin-bottom:16px;
+}
+
+/* countdown + winner */
+.countdown-num{
+  font-family:'Space Grotesk', sans-serif;
+  font-size: 88px;
+  font-weight:700;
+  text-align:center;
+  color: var(--navy);
+  line-height:1;
+  margin: 18px 0 8px;
+}
+.countdown-label{
+  text-align:center;
+  font-size:14px;
+  color:#5a615e;
+  margin-bottom: 6px;
+}
+
+.winner-wrap{ text-align:center; padding: 6px 0; position:relative; }
+.fire-row{ font-size:34px; letter-spacing:6px; margin-bottom:6px; }
+.winner-name{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:32px;
+  font-weight:700;
+  color: var(--navy);
+  margin: 6px 0 4px;
+}
+.winner-sub{
+  font-size:14px;
+  color:#5a615e;
+  margin-bottom: 18px;
+}
+.confetti-piece{
+  position:absolute;
+  top:-10px;
+  width:8px; height:14px;
+  opacity:0.9;
+  animation: fall linear forwards;
+}
+.balloon{
+  position:fixed;
+  left:var(--balloon-x,50%);
+  bottom:-48px;
+  width:28px;
+  height:36px;
+  border-radius:50% 50% 46% 46%;
+  opacity:.92;
+  animation:balloonRise linear forwards;
+  z-index:20;
+  pointer-events:none;
+}
+.balloon::before{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:8px solid currentColor;filter:brightness(.72);}
+.balloon::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:110px;background:rgba(23,23,23,.3);transform-origin:top;transform:rotate(3deg);}
+.ribbon-piece{position:fixed;left:var(--ribbon-x,50%);bottom:-28px;width:4px;height:42px;border-radius:4px;opacity:.9;transform-origin:bottom center;animation:ribbonRise ease-out forwards;z-index:19;pointer-events:none;}
+@keyframes fall{
+  to{ transform: translateY(340px) rotate(360deg); opacity:0.2; }
+}
+@keyframes balloonRise{0%{transform:translate3d(0,0,0) rotate(-4deg);opacity:0}12%{opacity:.92}50%{transform:translate3d(20px,-50vh,0) rotate(7deg)}100%{transform:translate3d(-18px,-125vh,0) rotate(-8deg);opacity:0}}
+@keyframes ribbonRise{0%{transform:translateY(0) rotate(0) scaleY(.6);opacity:0}15%{opacity:.9}50%{transform:translateY(-52vh) rotate(75deg) scaleY(1)}100%{transform:translateY(-125vh) rotate(150deg) scaleY(.8);opacity:0}}
+
+.footer-note{
+  text-align:center;
+  color: rgba(244,242,236,0.35);
+  font-size:11px;
+  font-family:'IBM Plex Mono', monospace;
+  margin-top: 18px;
+}
+
+.vote-toast{
+  position:fixed;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%) translateY(-12px);
+  background: var(--navy);
+  color:#fff;
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  padding:12px 20px;
+  border-radius:999px;
+  box-shadow:0 14px 30px rgba(0,0,0,.35);
+  z-index:50;
+  opacity:0;
+  animation: toastIn .3s ease forwards;
+  white-space:nowrap;
+}
+.vote-toast.hide{ animation: toastOut .3s ease forwards; }
+@keyframes toastIn{ from{opacity:0;transform:translateX(-50%) translateY(-12px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+@keyframes toastOut{ from{opacity:1;transform:translateX(-50%) translateY(0);} to{opacity:0;transform:translateX(-50%) translateY(-12px);} }
+@media (max-width:480px){ .vote-toast{ font-size:12px; padding:10px 16px; white-space:normal; max-width:90vw; text-align:center; } }
+
+button,input{font:inherit;}
+button:focus-visible,input:focus-visible{outline:3px solid rgba(239,102,31,.65);outline-offset:3px;}
+button:disabled{cursor:not-allowed;}
+@keyframes cardIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+@media (max-width:480px){body{padding:30px 12px 48px}.app::before{top:-30px}.card{padding:24px 18px}.header-row{align-items:flex-start}.live-badge{font-size:9px;padding:6px 8px}.name-grid{gap:8px}.name-pill{font-size:13px;padding:13px 6px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="eyebrow" id="eyebrow">BLACFOX STAR PLAYER</div>
+  <div class="header-row">
+    <h1 id="heading">Cast your vote</h1>
+    <div class="live-badge">Live round</div>
+  </div>
+  <div class="card" id="card"></div>
+  <div class="footer-note">Everyone's device stays in sync automatically</div>
+</div>
+
+<script>
+const ROSTER = ["Mtiwabo","Jaydon","Olwethu","Benita","Jerome","Amjad","Tonderai",
+"Pinto","Laroche","Amilio","Marlon","Fayaadh","Indipile","Rachel",
+"Rinolan","Nomonde","Malaika","Emilio","Tyrone","Stephan","Yudhveer","Payal","KG"];
+
+const HOST_PIN = "2620";
+const COUNTDOWN_SECONDS = 10;
+
+const card = document.getElementById('card');
+const heading = document.getElementById('heading');
+const eyebrow = document.getElementById('eyebrow');
+
+let state = {
+  screen: 'home',
+  pickedVoter: null,
+  me: null,
+  pickedCandidate: null,
+  isHost: false,
+  closedAt: null,
+  signedUp: false,
+};
+
+let pollTimer = null;      // per-screen polling (host dashboard, countdown ticking)
+let watcherTimer = null;   // global watcher, always running
+let lastVotingStatus = null; // used to detect when the host opens voting
+
+function showVoteToast(message){
+  const toast = document.createElement('div');
+  toast.className = 'vote-toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('hide'), 3600);
+  setTimeout(() => toast.remove(), 4200);
+}
+
+// ---------- storage helpers ----------
+async function readStored(key, fallback){
+  try{
+    if(window.storage && typeof window.storage.get === 'function'){
+      const result = await window.storage.get(key, true);
+      if(result && result.value !== undefined) return JSON.parse(result.value);
+    }
+  }catch(e){}
+  try{
+    const value = localStorage.getItem(`blacfox-star-player-${key}`);
+    return value === null ? fallback : JSON.parse(value);
+  }catch(e){ return fallback; }
+}
+
+async function writeStored(key, value){
+  const serialized = JSON.stringify(value);
+  try{
+    if(window.storage && typeof window.storage.set === 'function') await window.storage.set(key, serialized, true);
+  }catch(e){}
+  try{ localStorage.setItem(`blacfox-star-player-${key}`, serialized); }catch(e){}
+}
+
+async function getSignups(){
+  return readStored('signups', []);
+}
+async function setSignups(list){
+  return writeStored('signups', list);
+}
+async function getVotes(){
+  return readStored('votes', {});
+}
+async function setVotes(v){
+  return writeStored('votes', v);
+}
+async function getVotingStatus(){
+  return readStored('voting', { status:'setup', closedAt:null, tieNames:[] });
+}
+async function setVotingStatus(v){
+  return writeStored('voting', v);
+}
+
+function tallyVotes(votes){
+  const tally = {};
+  ROSTER.forEach(n => tally[n] = 0);
+  Object.values(votes).forEach(v => { if(tally[v.candidate] !== undefined) tally[v.candidate]++; });
+  return tally;
+}
+
+// ---------- render dispatcher ----------
+function setHeader(eb, h){ eyebrow.textContent = eb; heading.textContent = h; }
+
+function stopPoll(){ if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+
+async function render(){
+  stopPoll();
+  if(state.screen === 'home') return renderHome();
+  if(state.screen === 'pickVoter') return renderPickVoter();
+  if(state.screen === 'confirmVoter') return renderConfirmVoter();
+  if(state.screen === 'voteWait') return renderVoteWait();
+  if(state.screen === 'vote') return renderVote();
+  if(state.screen === 'confirmVote') return renderConfirmVote();
+  if(state.screen === 'receipt') return renderReceipt();
+  if(state.screen === 'alreadyVoted') return renderAlreadyVoted();
+  if(state.screen === 'hostPin') return renderHostPin();
+  if(state.screen === 'host') return renderHost();
+  if(state.screen === 'countdown') return renderCountdown();
+  if(state.screen === 'winner') return renderWinner();
+  if(state.screen === 'closedNotice') return renderClosedNotice();
+}
+
+function resetLocalState(keepHost){
+  state = { screen:'home', pickedVoter:null, me:null, pickedCandidate:null, isHost: !!keepHost, closedAt:null, signedUp:false };
+}
+
+// ---------- HOME ----------
+async function renderHome(){
+  setHeader('BLACFOX STAR PLAYER', 'Cast your vote');
+  const status = await getVotingStatus();
+  if(status.status === 'closed'){
+    if(state.signedUp || state.isHost){
+      state.closedAt = status.closedAt;
+      state.screen = 'countdown';
+      return render();
+    }
+    state.screen = 'closedNotice';
+    return render();
+  }
+  card.innerHTML = `
+    <div class="screen-title">Welcome</div>
+    <div class="screen-sub">Choose how you'd like to join today's vote.</div>
+    <div class="btn-row">
+      <button class="big-btn primary" id="btnVoter">Sign up to vote <span class="arrow">&rarr;</span></button>
+      <button class="big-btn ghost" id="btnHost">Sign up as host <span class="arrow">&rarr;</span></button>
+    </div>
+  `;
+  document.getElementById('btnVoter').onclick = () => { state.screen='pickVoter'; render(); };
+  document.getElementById('btnHost').onclick = () => { state.screen='hostPin'; render(); };
+}
+
+// ---------- HOST PIN ----------
+function renderHostPin(){
+  setHeader('HOST SIGN UP', 'Enter host PIN');
+  card.innerHTML = `
+    <div class="screen-title">Host access</div>
+    <div class="screen-sub">Enter the 4-digit PIN to sign up as host.</div>
+    <input class="pin-input" id="pinField" type="password" inputmode="numeric" maxlength="4" placeholder="&bull;&bull;&bull;&bull;">
+    <div class="pin-error" id="pinError"></div>
+    <div class="actions">
+      <button class="action-btn back" id="btnBack">Back</button>
+      <button class="action-btn confirm" id="btnConfirm">Enter</button>
+    </div>
+  `;
+  const field = document.getElementById('pinField');
+  field.focus();
+  document.getElementById('btnBack').onclick = () => { state.screen='home'; render(); };
+  const tryEnter = async () => {
+    if(field.value === HOST_PIN){
+      // wipe any stale round data so a fresh host session never publishes old results
+      await setSignups([]);
+      await setVotes({});
+      await setVotingStatus({ status:'setup', closedAt:null, tieNames:[] });
+      state.isHost = true;
+      state.screen = 'host';
+      render();
+    } else {
+      document.getElementById('pinError').textContent = 'Incorrect PIN, try again.';
+      field.value = '';
+      field.focus();
+    }
+  };
+  document.getElementById('btnConfirm').onclick = tryEnter;
+  field.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryEnter(); });
+}
+
+// ---------- PICK VOTER NAME ----------
+async function renderPickVoter(){
+  setHeader('SIGN UP', 'Which one are you?');
+  const status = await getVotingStatus();
+  if(status.status !== 'open' && status.status !== 'setup'){
+    state.screen = 'closedNotice';
+    return render();
+  }
+  const [signups, votes] = await Promise.all([getSignups(), getVotes()]);
+  card.innerHTML = `
+    <div class="screen-title">Select your name</div>
+    <div class="screen-sub">Tap your name, then confirm on the next step.</div>
+    <div class="name-grid" id="grid"></div>
+    <span class="link-back" id="back">&larr; Back</span>
+  `;
+  const grid = document.getElementById('grid');
+  ROSTER.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'name-pill';
+    btn.textContent = name;
+    if(votes[name]){
+      btn.disabled = true;
+      btn.innerHTML = name + '<span class="voted-tag">already voted</span>';
+    }
+    btn.onclick = () => { state.pickedVoter = name; state.screen='confirmVoter'; render(); };
+    grid.appendChild(btn);
+  });
+  document.getElementById('back').onclick = () => { state.screen='home'; render(); };
+}
+
+async function renderConfirmVoter(){
+  setHeader('SIGN UP', "Confirm it's you");
+  card.innerHTML = `
+    <div class="screen-title">Just checking</div>
+    <div class="confirm-box">You selected <b>${state.pickedVoter}</b>. Is that right?</div>
+    <div class="actions">
+      <button class="action-btn back" id="btnBack">Not me</button>
+      <button class="action-btn confirm" id="btnConfirm">Confirm</button>
+    </div>
+  `;
+  document.getElementById('btnBack').onclick = () => { state.screen='pickVoter'; render(); };
+  document.getElementById('btnConfirm').onclick = async () => {
+    const status = await getVotingStatus();
+    if(status.status !== 'open' && status.status !== 'setup'){ state.screen = 'closedNotice'; return render(); }
+    const [signups, votes] = await Promise.all([getSignups(), getVotes()]);
+    state.me = state.pickedVoter;
+    state.signedUp = true;
+    if(votes[state.pickedVoter]){
+      state.screen = 'alreadyVoted';
+      return render();
+    }
+    if(!signups.includes(state.pickedVoter)){
+      signups.push(state.pickedVoter);
+      await setSignups(signups);
+    }
+    // only the candidate-picking screen requires the host to have opened voting
+    state.screen = status.status === 'open' ? 'vote' : 'voteWait';
+    render();
+  };
+}
+
+// ---------- WAITING FOR HOST TO OPEN VOTING ----------
+async function renderVoteWait(){
+  setHeader('SIGN UP', "You're in, " + state.me);
+  card.innerHTML = `
+    <div class="screen-title">Signed up as ${state.me}</div>
+    <div class="screen-sub">The host hasn't enabled voting yet. Stay on this screen \u2014 you'll be moved to the ballot the moment the host starts the round.</div>
+    <div class="closed-banner">Waiting for the host to open voting&hellip;</div>
+    <span class="link-back" id="back">&larr; Back to start</span>
+  `;
+  document.getElementById('back').onclick = () => { resetLocalState(false); render(); };
+  const tick = async () => {
+    const status = await getVotingStatus();
+    if(status.status === 'open'){
+      stopPoll();
+      showVoteToast(`${state.me}, the host has enabled you to vote!`);
+      state.screen = 'vote';
+      render();
+    } else if(status.status === 'closed'){
+      stopPoll();
+      state.closedAt = status.closedAt;
+      state.screen = 'countdown';
+      render();
+    } else if(status.status === 'tie' || status.status === 'published'){
+      stopPoll();
+      state.closedAt = status.closedAt;
+      state.screen = 'winner';
+      render();
+    }
+  };
+  tick();
+  pollTimer = setInterval(tick, 500);
+}
+
+function renderClosedNotice(){
+  setHeader('BLACFOX STAR PLAYER', 'Voting is not open');
+  card.innerHTML = `
+    <div class="closed-banner">The host has not opened voting yet, or voting has already closed for this round. Please wait for the host to open the ballot.</div>
+    <div class="btn-row">
+      <button class="big-btn ghost" id="btnBack">Back to start <span class="arrow">&rarr;</span></button>
+    </div>
+  `;
+  document.getElementById('btnBack').onclick = () => { resetLocalState(false); render(); };
+}
+
+// ---------- VOTE ----------
+async function renderVote(){
+  setHeader('BALLOT', 'Who gets your vote?');
+  const status = await getVotingStatus();
+  const candidates = status.tieNames && status.tieNames.length ? status.tieNames : ROSTER;
+  card.innerHTML = `
+    <div class="screen-title">Signed in as ${state.me}</div>
+    <div class="screen-sub">Select the person you want to vote for${status.tieNames && status.tieNames.length ? ' in the tie-break round' : ''}.</div>
+    <div class="name-grid" id="grid"></div>
+  `;
+  const grid = document.getElementById('grid');
+  candidates.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'name-pill';
+    btn.textContent = name;
+    btn.onclick = () => { state.pickedCandidate = name; state.screen='confirmVote'; render(); };
+    grid.appendChild(btn);
+  });
+}
+
+function renderConfirmVote(){
+  setHeader('BALLOT', 'Confirm your vote');
+  card.innerHTML = `
+    <div class="screen-title">Last step</div>
+    <div class="confirm-box">Cast your vote for <b>${state.pickedCandidate}</b>? This can't be changed afterwards.</div>
+    <div class="actions">
+      <button class="action-btn back" id="btnBack">Choose again</button>
+      <button class="action-btn confirm" id="btnConfirm">Confirm vote</button>
+    </div>
+  `;
+  document.getElementById('btnBack').onclick = () => { state.screen='vote'; render(); };
+  document.getElementById('btnConfirm').onclick = async () => {
+    const status = await getVotingStatus();
+    if(status.status === 'closed'){ state.closedAt = status.closedAt; state.screen='countdown'; return render(); }
+    const votes = await getVotes();
+    state.signedUp = true;
+    if(votes[state.me]){
+      state.screen = 'alreadyVoted';
+      return render();
+    }
+    votes[state.me] = { candidate: state.pickedCandidate, time: Date.now() };
+    await setVotes(votes);
+    state.screen = 'receipt';
+    render();
+  };
+}
+
+async function renderReceipt(){
+  setHeader('BALLOT', 'Vote received');
+  card.innerHTML = `
+    <div class="stamp-wrap">
+      <div class="stamp">VOTED</div>
+    </div>
+    <div class="receipt-line">BALLOT CONFIRMED</div>
+    <div class="receipt-name">${state.me} &rarr; ${state.pickedCandidate}</div>
+    <div class="receipt-line">Your vote is locked in. Stay here while the team finishes voting.</div>
+    <div class="voted-lobby">
+      <div class="vote-pulse" id="votePulse" aria-live="polite"></div>
+      <div class="lobby-head"><div class="lobby-title">Voters in the lobby</div><div class="lobby-count" id="lobbyCount">Loading</div></div>
+      <div class="voted-grid" id="votedGrid"></div>
+      <p class="lobby-wait" id="lobbyWait"></p>
+    </div>
+    <p class="lobby-wait" style="text-align:center;margin-top:18px">The lobby will remain locked until the host publishes the results.</p>
+  `;
+  const knownVoters = new Set();
+  const drawLobby = async () => {
+    const votes = await getVotes();
+    const votedNames = ROSTER.filter(name=>votes[name]);
+    const waiting = ROSTER.length - votedNames.length;
+    const grid = document.getElementById('votedGrid');
+    if(!grid) return;
+    const newVoters = votedNames.filter(name=>!knownVoters.has(name));
+    newVoters.forEach(name=>knownVoters.add(name));
+    const pulse = document.getElementById('votePulse');
+    if(pulse && newVoters.length){
+      pulse.textContent = `${newVoters[0]} just voted`;
+      pulse.classList.remove('show');
+      void pulse.offsetWidth;
+      pulse.classList.add('show');
+    }
+    grid.innerHTML = votedNames.length ? votedNames.map(name=>`<div class="voted-person${name===state.me?' current':''}">${name}${name===state.me?' <small>(you)</small>':''}</div>`).join('') : '<div class="lobby-wait">No votes have been recorded yet.</div>';
+    document.getElementById('lobbyCount').textContent = `${votedNames.length}/${ROSTER.length} voted`;
+    document.getElementById('lobbyWait').innerHTML = waiting ? `<strong>${waiting}</strong> ${waiting===1?'person is':'people are'} still deciding.` : '<strong>Everyone has voted.</strong> Waiting for the host to reveal the result.';
+  };
+  await drawLobby();
+  pollTimer = setInterval(drawLobby, 2500);
+}
+
+function renderAlreadyVoted(){
+  setHeader('BALLOT', 'Already counted');
+  card.innerHTML = `
+    <div class="stamp-wrap">
+      <div class="stamp" style="border-color:#8a8f8c;color:#8a8f8c;">DONE</div>
+    </div>
+    <div class="receipt-line">${state.me}, your vote is already on record.</div>
+    <div class="btn-row" style="margin-top:20px;">
+      <button class="big-btn ghost" id="btnDone">Back to start <span class="arrow">&rarr;</span></button>
+    </div>
+  `;
+  document.getElementById('btnDone').onclick = () => { resetLocalState(false); render(); };
+}
+
+// ---------- HOST ----------
+async function renderHost(){
+  setHeader('HOST VIEW', 'Consolidated results');
+  card.innerHTML = `<div class="screen-sub">Loading live data&hellip;</div>`;
+  const status = await getVotingStatus();
+  if(status.status === 'closed'){
+    state.closedAt = status.closedAt;
+    state.screen = 'countdown';
+    return render();
+  }
+  await drawHost();
+  pollTimer = setInterval(async () => {
+    const s = await getVotingStatus();
+    if(s.status === 'closed'){
+      stopPoll();
+      state.closedAt = s.closedAt;
+      state.screen = 'countdown';
+      render();
+      return;
+    }
+    drawHost();
+  }, 3000);
+}
+
+async function drawHost(){
+  const [signups, votes] = await Promise.all([getSignups(), getVotes()]);
+  const tally = tallyVotes(votes);
+  const totalVotes = Object.keys(votes).length;
+  const maxVotes = Math.max(1, ...Object.values(tally));
+  const sorted = ROSTER.slice().sort((a,b) => tally[b]-tally[a]);
+
+  let bars = sorted.map(name => `
+    <div class="bar-row">
+      <div class="bar-head"><span>${name}</span><span class="cnt">${tally[name]}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(tally[name]/maxVotes*100)}%"></div></div>
+    </div>
+  `).join('');
+
+  let chips = ROSTER.map(name => {
+    let cls = 'status-chip';
+    if(votes[name]) cls += ' voted';
+    else if(signups.includes(name)) cls += ' signed';
+    return `<span class="${cls}">${name}</span>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="screen-title">Dashboard</div>
+    <div class="screen-sub">This consolidates every device's signups and votes live. Round status: <strong>${status.status === 'setup' ? 'Waiting to open' : status.status === 'open' ? 'Voting open' : status.status === 'tie' ? 'Tie announced' : status.status === 'published' ? 'Winner announced' : status.status}</strong>.</div>
+    ${status.status === 'setup' ? '<button class="stop-btn" id="openBtn">Open voting for everyone</button>' : status.status === 'tie' ? `<button class="stop-btn" id="tieBtn">Start tie-break vote for ${status.tieNames.join(' and ')}</button>` : status.status === 'open' ? '<button class="stop-btn" id="stopBtn">Stop voting for everyone</button>' : ''}
+    <div class="stat-row">
+      <div class="stat"><div class="num">${signups.length}/${ROSTER.length}</div><div class="lbl">Signed up</div></div>
+      <div class="stat"><div class="num">${totalVotes}</div><div class="lbl">Votes cast</div></div>
+    </div>
+    <div id="bars">${bars}</div>
+    <div class="screen-title" style="margin-top:18px;font-size:15px;">Team status</div>
+    <div class="roster-status">${chips}</div>
+    <div class="host-danger">
+      <button class="reset-btn" id="resetBtn">Reset all signups &amp; votes</button>
+      <span class="link-back" id="backHome">Back to start</span>
+    </div>
+  `;
+  document.getElementById('backHome').onclick = () => { state.screen='home'; render(); };
+  const openBtn = document.getElementById('openBtn');
+  if(openBtn) openBtn.onclick = async () => {
+    await setVotingStatus({ status:'open', closedAt:null, tieNames:status.tieNames || [] });
+    renderHost();
+  };
+  const tieBtn = document.getElementById('tieBtn');
+  if(tieBtn) tieBtn.onclick = async () => {
+    await setVotes({});
+    await setSignups([]);
+    await setVotingStatus({ status:'open', closedAt:null, tieNames:status.tieNames || [] });
+    renderHost();
+  };
+  const stopBtn = document.getElementById('stopBtn');
+  if(stopBtn) stopBtn.onclick = async () => {
+    if(confirm('Stop voting for everyone right now? No further signups or votes will be accepted.')){
+      const closedAt = Date.now();
+      await setVotingStatus({ status:'closed', closedAt, tieNames:status.tieNames || [] });
+      stopPoll();
+      state.closedAt = closedAt;
+      state.screen = 'countdown';
+      render();
+    }
+  };
+  document.getElementById('resetBtn').onclick = async () => {
+    if(confirm('This clears every signup and vote for all devices, and reopens voting. Continue?')){
+      await setSignups([]);
+      await setVotes({});
+      await setVotingStatus({ status:'setup', closedAt:null, tieNames:[] });
+      drawHost();
+    }
+  };
+}
+
+// ---------- COUNTDOWN ----------
+function renderCountdown(){
+  setHeader('BALLOT', 'Voting has closed');
+  card.innerHTML = `
+    <div class="closed-banner">The host has stopped voting. Tallying the final results&hellip;</div>
+    <div class="countdown-label">Results in</div>
+    <div class="countdown-num" id="countNum">${COUNTDOWN_SECONDS}</div>
+  `;
+  const numEl = document.getElementById('countNum');
+  // every device (not just the host) checks the shared status every tick, so the
+  // reveal happens within ~300ms on all screens instead of waiting on the slower global watcher.
+  const tick = async () => {
+    const elapsed = Math.floor((Date.now() - state.closedAt) / 1000);
+    const remaining = Math.max(0, COUNTDOWN_SECONDS - elapsed);
+    numEl.textContent = remaining;
+    const status = await getVotingStatus();
+    if(status.status === 'published' || status.status === 'tie'){
+      stopPoll();
+      state.closedAt = status.closedAt;
+      state.screen = 'winner';
+      return render();
+    }
+    if(remaining <= 0 && state.isHost && status.status === 'closed'){
+      const votes = await getVotes();
+      const tally = tallyVotes(votes);
+      const maxVotes = Math.max(0, ...Object.values(tally));
+      const winners = maxVotes > 0 ? ROSTER.filter(name=>tally[name] === maxVotes) : [];
+      await setVotingStatus({ status:winners.length > 1 ? 'tie' : 'published', closedAt:state.closedAt, tieNames:winners });
+      stopPoll();
+      state.screen = 'winner';
+      render();
+    }
+  };
+  tick();
+  pollTimer = setInterval(tick, 300);
+}
+
+// ---------- WINNER ----------
+async function renderWinner(){
+  setHeader('RESULTS', 'And the winner is...');
+  const status = await getVotingStatus();
+  const votes = await getVotes();
+  const tally = tallyVotes(votes);
+  const maxVotes = Math.max(...Object.values(tally));
+  const winners = status.tieNames && status.tieNames.length ? status.tieNames : (maxVotes > 0 ? ROSTER.filter(n => tally[n] === maxVotes) : []);
+  const totalVotes = Object.keys(votes).length;
+
+  let winnerBlock;
+  if(winners.length === 0){
+    winnerBlock = `<div class="winner-sub">No votes were cast this round.</div>`;
+  } else if(winners.length === 1){
+    winnerBlock = `
+      <div class="winner-name">${winners[0]}</div>
+      <div class="winner-sub">Congratulations!</div>
+    `;
+  } else {
+    winnerBlock = `
+      <div class="winner-name">${winners.join(' &amp; ')}</div>
+      <div class="winner-sub">It's a tie between these players. Everyone will vote again to get one winner.</div>
+    `;
+  }
+
+  card.innerHTML = `
+    <div class="winner-wrap" id="winnerWrap">
+      <div class="fire-row">&#128293; &#127881; &#128293;</div>
+      ${winnerBlock}
+      <div class="btn-row" style="margin-top:10px;">
+        ${state.isHost ? (status.status === 'tie' ? '<button class="action-btn confirm" id="tieRoundBtn">Open tie-break vote</button>' : '<button class="reset-btn" id="newRoundBtn">Start a new round</button>') : '<span class="link-back" id="doneBtn">Waiting for the host</span>'}
+      </div>
+    </div>
+  `;
+  spawnConfetti(document.getElementById('winnerWrap'));
+  spawnCelebration(document.getElementById('winnerWrap'));
+  if(state.isHost){
+    const tieRoundBtn = document.getElementById('tieRoundBtn');
+    if(tieRoundBtn) tieRoundBtn.onclick = async () => {
+      await setVotes({});
+      await setSignups([]);
+      await setVotingStatus({ status:'open', closedAt:null, tieNames:winners });
+      state.screen = 'host';
+      render();
+    };
+    const btn = document.getElementById('newRoundBtn');
+    if(btn){
+      btn.onclick = async () => {
+        if(confirm('Start a new round? This clears all signups and votes and reopens voting.')){
+          await setSignups([]);
+          await setVotes({});
+          await setVotingStatus({ status:'setup', closedAt:null, tieNames:[] });
+          state.screen = 'host';
+          render();
+        }
+      };
+    }
+  } else {
+    const done = document.getElementById('doneBtn');
+    if(done) done.onclick = () => { resetLocalState(false); render(); };
+  }
+}
+
+function spawnConfetti(container){
+  if(!container) return;
+  const colors = ['#ef661f', '#ff9a3d', '#171717', '#ffd0b0'];
+  for(let i = 0; i < 24; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random()*100 + '%';
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDuration = (1.2 + Math.random()*1.2) + 's';
+    piece.style.animationDelay = (Math.random()*0.4) + 's';
+    container.appendChild(piece);
+  }
+}
+
+function spawnCelebration(container){
+  if(!container) return;
+  const colors = ['#ef661f','#ff9a3d','#171717','#c94727','#ffd0b0'];
+  for(let i=0;i<10;i++){
+    const balloon = document.createElement('div');
+    balloon.className = 'balloon';
+    balloon.setAttribute('aria-hidden','true');
+    balloon.style.left = `${5 + Math.random()*90}%`;
+    balloon.style.background = colors[i % colors.length];
+    balloon.style.color = colors[i % colors.length];
+    balloon.style.animationDuration = `${4.5 + Math.random()*2.5}s`;
+    balloon.style.animationDelay = `${Math.random()*1.6}s`;
+    container.appendChild(balloon);
+  }
+  for(let i=0;i<18;i++){
+    const ribbon = document.createElement('div');
+    ribbon.className = 'ribbon-piece';
+    ribbon.setAttribute('aria-hidden','true');
+    ribbon.style.left = `${Math.random()*100}%`;
+    ribbon.style.background = colors[i % colors.length];
+    ribbon.style.animationDuration = `${3.2 + Math.random()*2.4}s`;
+    ribbon.style.animationDelay = `${Math.random()*1.4}s`;
+    ribbon.style.transform = `rotate(${(Math.random()*30)-15}deg)`;
+    container.appendChild(ribbon);
+  }
+}
+
+// ---------- GLOBAL WATCHER ----------
+// Keeps every open device in sync with the host's stop/reset actions,
+// independent of whichever screen is currently rendered.
+function startWatcher(){
+  if(watcherTimer) clearInterval(watcherTimer);
+  watcherTimer = setInterval(async () => {
+    const status = await getVotingStatus();
+    const closedScreens = ['home','pickVoter','confirmVoter','voteWait','vote','confirmVote','receipt','alreadyVoted'];
+    const preVoteScreens = ['home','closedNotice','pickVoter','confirmVoter'];
+    const eligible = state.signedUp || state.isHost;
+    if(status.status === 'open' && lastVotingStatus && lastVotingStatus !== 'open' && !state.isHost && preVoteScreens.includes(state.screen)){
+      showVoteToast(state.me ? `${state.me}, the host has enabled you to vote!` : 'The host has enabled you to vote!');
+    }
+    if(status.status === 'closed' && eligible && closedScreens.includes(state.screen)){
+      state.closedAt = status.closedAt;
+      state.screen = 'countdown';
+      render();
+    } else if((status.status === 'tie' || status.status === 'published') && eligible && ['countdown','receipt','alreadyVoted'].includes(state.screen)){
+      state.closedAt = status.closedAt;
+      state.screen = 'winner';
+      render();
+    } else if(status.status === 'open' && !state.isHost && (state.screen === 'countdown' || state.screen === 'winner' || state.screen === 'closedNotice')){
+      resetLocalState(false);
+      render();
+    }
+    lastVotingStatus = status.status;
+  }, 2500);
+}
+
+(async () => { lastVotingStatus = (await getVotingStatus()).status; })();
+render();
+startWatcher();
+</script>
+</body>
+</html>
