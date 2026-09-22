@@ -906,6 +906,7 @@ async function renderHost(){
 }
 
 async function drawHost(){
+  const status = await getVotingStatus();
   const [signups, votes] = await Promise.all([getSignups(), getVotes()]);
   const tally = tallyVotes(votes);
   const totalVotes = Object.keys(votes).length;
@@ -1129,6 +1130,12 @@ function startWatcher(){
     const eligible = state.signedUp || state.isHost;
     if(status.status === 'open' && lastVotingStatus && lastVotingStatus !== 'open' && !state.isHost && preVoteScreens.includes(state.screen)){
       showVoteToast(state.me ? `${state.me}, the host has enabled you to vote!` : 'The host has enabled you to vote!');
+    }
+    // a host reset wipes every signup/vote, so sign every voter back out to the start screen
+    if(status.status === 'setup' && lastVotingStatus && lastVotingStatus !== 'setup' && !state.isHost && state.screen !== 'home'){
+      resetLocalState(false);
+      showVoteToast('The host has reset the round \u2014 please sign up again.');
+      render();
     }
     if(status.status === 'closed' && eligible && closedScreens.includes(state.screen)){
       state.closedAt = status.closedAt;
