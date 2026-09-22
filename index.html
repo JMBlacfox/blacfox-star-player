@@ -808,7 +808,12 @@ async function renderVote(){
     const btn = document.createElement('button');
     btn.className = 'name-pill';
     btn.textContent = name;
-    btn.onclick = () => { state.pickedCandidate = name; state.screen='confirmVote'; render(); };
+    if(name === state.me){
+      btn.disabled = true;
+      btn.innerHTML = name + '<span class="voted-tag">you can\'t vote for yourself</span>';
+    } else {
+      btn.onclick = () => { state.pickedCandidate = name; state.screen='confirmVote'; render(); };
+    }
     grid.appendChild(btn);
   });
 }
