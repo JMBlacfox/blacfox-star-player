@@ -385,6 +385,7 @@ h1{
   width:100%;
   margin-bottom:16px;
 }
+.stop-btn:disabled{ opacity:.4; cursor:not-allowed; }
 .closed-banner{
   background:#efe6d8;
   border:1.5px solid var(--gold);
@@ -948,7 +949,11 @@ async function drawHost(){
   card.innerHTML = `
     <div class="screen-title">Dashboard</div>
     <div class="screen-sub">This consolidates every device's signups and votes live. Round status: <strong>${status.status === 'setup' ? 'Waiting to open' : status.status === 'open' ? 'Voting open' : status.status === 'tie' ? 'Tie announced' : status.status === 'published' ? 'Winner announced' : status.status}</strong>.</div>
-    ${status.status === 'setup' ? '<button class="stop-btn" id="openBtn">Open voting for everyone</button>' : status.status === 'tie' ? `<button class="stop-btn" id="tieBtn">Start tie-break vote for ${status.tieNames.join(' and ')}</button>` : status.status === 'open' ? '<button class="stop-btn" id="stopBtn">Stop voting for everyone</button>' : ''}
+    <div class="btn-row" style="margin-bottom:18px;">
+      <button class="stop-btn" id="openBtn" style="margin-bottom:0;" ${status.status === 'open' || status.status === 'tie' ? 'disabled' : ''}>Open voting for everyone</button>
+      <button class="stop-btn" id="stopBtn" style="margin-bottom:0;background:var(--navy);" ${status.status !== 'open' ? 'disabled' : ''}>Stop voting for everyone</button>
+    </div>
+    ${status.status === 'tie' ? `<button class="stop-btn" id="tieBtn">Start tie-break vote for ${status.tieNames.join(' and ')}</button>` : ''}
     <div class="stat-row">
       <div class="stat"><div class="num">${signups.length}/${ROSTER.length}</div><div class="lbl">Signed up</div></div>
       <div class="stat"><div class="num">${totalVotes}</div><div class="lbl">Votes cast</div></div>
@@ -964,6 +969,7 @@ async function drawHost(){
   document.getElementById('backHome').onclick = () => { state.screen='home'; render(); };
   const openBtn = document.getElementById('openBtn');
   if(openBtn) openBtn.onclick = async () => {
+    if(status.status === 'open' || status.status === 'tie') return;
     await setVotingStatus({ status:'open', closedAt:null, tieNames:status.tieNames || [] });
     renderHost();
   };
@@ -976,6 +982,7 @@ async function drawHost(){
   };
   const stopBtn = document.getElementById('stopBtn');
   if(stopBtn) stopBtn.onclick = async () => {
+    if(status.status !== 'open') return;
     if(confirm('Stop voting for everyone right now? No further signups or votes will be accepted.')){
       const closedAt = Date.now();
       await setVotingStatus({ status:'closed', closedAt, tieNames:status.tieNames || [] });
