@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Blacfox Media Advisor</title>
+<style>
+:root{
+  --bg:#101010; --panel:#181818; --panel2:#232323; --border:#383838; --soft:#303030;
+  --text:#f7f7f5; --sub:#b7b7b2; --accent:#ef661f; --accent2:#ff9a3d; --accent3:#ffc078;
+  --warn:#e8a33d; --good:#3fbf7f; --bad:#e05d5d; --radius:16px;
+  --shadow:0 22px 60px rgba(6,12,20,.38);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f5f4f1; --panel:#ffffff; --panel2:#f0efeb; --border:#dedbd4; --soft:#e4e1da;
+    --text:#181818; --sub:#686863; --accent:#df581b; --accent2:#ed822d; --accent3:#b64a18;
+    --shadow:0 18px 42px rgba(15,23,42,.08);
+  }
+}
+:root[data-theme="dark"]{ --bg:#101010; --panel:#181818; }
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(239,102,31,.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(255,154,61,.11), transparent 24%),
+    var(--bg);
+  color:var(--text); padding:28px 18px 60px; line-height:1.5;
+}
+.page-shell{max-width:1040px; margin:0 auto;}
+.app-header{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  margin-bottom:10px; padding:6px 4px 0;
+}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px; padding:5px 10px; border-radius:999px;
+  background:rgba(239,102,31,.12); border:1px solid rgba(239,102,31,.34); color:var(--accent3);
+  font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700;
+  margin-bottom:10px;
+}
+.eyebrow::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px rgba(239,102,31,.9);}
+h1{font-size:clamp(2rem, 3vw, 2.5rem); line-height:1.1; margin:0; letter-spacing:-.04em;}
+.sub{
+  color:var(--sub); margin:0 0 22px; font-size:.92rem; letter-spacing:.01em;
+}
+.header-badge{
+  background:var(--panel); border:1px solid var(--border); border-radius:999px;
+  padding:8px 12px; font-size:.72rem; font-weight:700; color:var(--sub); box-shadow:var(--shadow);
+}
+.steps{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+.step-pill{
+  font-size:.68rem; padding:7px 10px; border-radius:999px; border:1px solid var(--border);
+  color:var(--sub); background:rgba(16,24,39,.72); backdrop-filter:blur(6px);
+  letter-spacing:.02em; transition:all .16s ease; cursor:pointer; font:inherit;
+}
+.step-pill:hover{transform:translateY(-1px); border-color:rgba(239,102,31,.75); color:var(--text);}
+.step-pill.active{
+  background:linear-gradient(135deg, var(--accent), var(--accent2)); border-color:transparent;
+  color:#fff; font-weight:700; box-shadow:0 10px 24px rgba(239,102,31,.3);
+}
+.step-pill.done{border-color:rgba(255,154,61,.55); color:var(--accent2); background:rgba(255,154,61,.08);}
+.panel{
+  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--panel);
+  border:1px solid var(--border); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow);
+}
+.panel h2{margin:0 0 6px; font-size:1.25rem; letter-spacing:-.025em;}
+.panel .hint{color:var(--sub); font-size:.88rem; margin:0 0 18px;}
+textarea{
+  width:100%; min-height:110px; background:var(--panel2); border:1px solid var(--border);
+  border-radius:12px; color:var(--text); padding:14px 14px; font-size:.93rem; font-family:inherit;
+  resize:vertical; transition:border-color .12s ease, box-shadow .12s ease;
+}
+textarea:focus, input[type=text]:focus, input[type=number]:focus, input[type=date]:focus, select:focus{
+  outline:none; border-color:rgba(239,102,31,.75); box-shadow:0 0 0 4px rgba(239,102,31,.12);
+}
+input[type=text], input[type=number], input[type=date], select{
+  background:var(--panel2); border:1px solid var(--border); border-radius:10px; color:var(--text);
+  padding:10px 12px; font-size:.88rem; font-family:inherit; width:100%; transition:border-color .12s ease, box-shadow .12s ease;
+}
+.choice-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;}
+.choice-btn{
+  position:relative; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--panel2);
+  border:1px solid var(--border); color:var(--text); padding:16px 14px; border-radius:12px;
+  cursor:pointer; text-align:left; font-size:.9rem; font-weight:700; line-height:1.35;
+  transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease, background .12s ease;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+}
+.choice-btn:hover{transform:translateY(-1px); border-color:rgba(239,102,31,.75); box-shadow:0 10px 20px rgba(14,20,33,.28);}
+.choice-btn .desc{display:block; font-weight:400; color:var(--sub); font-size:.76rem; margin-top:5px;}
+.choice-btn.selected{
+  background:linear-gradient(135deg, var(--accent), var(--accent2)); border-color:transparent; color:#fff;
+  box-shadow:0 12px 26px rgba(239,102,31,.26);
+}
+.choice-btn.selected .desc{color:rgba(255,255,255,.9);}
+.choice-btn.recommended{border-color:rgba(255,154,61,.75); box-shadow:0 0 0 1px rgba(255,154,61,.55) inset;}
+.rec-badge{
+  position:absolute; top:-8px; right:10px; background:var(--accent2); color:#062a2b;
+  font-size:.62rem; font-weight:800; padding:2px 7px; border-radius:999px; letter-spacing:.04em;
+  box-shadow:0 8px 18px rgba(255,154,61,.25);
+}
+.rec-note{
+  background:rgba(255,154,61,.08); border:1px solid rgba(255,154,61,.3); color:var(--accent2);
+  border-radius:12px; padding:12px 14px; font-size:.84rem; margin-bottom:16px;
+}
+.goal-insight{
+  margin-top:14px; padding:15px 16px; border:1px solid rgba(239,102,31,.34);
+  border-radius:12px; background:linear-gradient(135deg, rgba(239,102,31,.1), rgba(255,154,61,.06));
+  font-size:.85rem; min-height:52px;
+}
+.goal-insight:empty{display:none;}
+.goal-insight .insight-label{
+  color:var(--accent3); font-size:.68rem; font-weight:800; letter-spacing:.07em;
+  text-transform:uppercase; margin-bottom:5px;
+}
+.goal-insight strong{color:var(--text);}
+.goal-insight .insight-detail{color:var(--sub); margin-top:4px;}
+.qcard{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px;}
+.qcard p.q{margin:0 0 10px; font-weight:600; font-size:.92rem;}
+.yn{display:flex; gap:8px; margin-bottom:8px;}
+.yn button{
+  flex:1; padding:9px; border-radius:9px; border:1px solid var(--border); background:var(--panel);
+  color:var(--text); cursor:pointer; font-size:.82rem; font-weight:700; transition:all .12s ease;
+}
+.yn button:hover{border-color:rgba(239,102,31,.7);} 
+.yn button.sel-yes{background:linear-gradient(135deg, #1d8e5f, var(--good)); border-color:transparent; color:#fff; box-shadow:0 8px 20px rgba(63,191,127,.22);}
+.yn button.sel-no{background:linear-gradient(135deg, #c75959, var(--bad)); border-color:transparent; color:#fff; box-shadow:0 8px 20px rgba(224,93,93,.22);}
+.feedback{font-size:.82rem; padding:9px 10px; border-radius:8px; display:none;}
+.feedback.show{display:block;}
+.feedback.warn{background:rgba(232,163,61,.11); color:var(--warn); border:1px solid rgba(232,163,61,.32);}
+.feedback.good{background:rgba(63,191,127,.11); color:var(--good); border:1px solid rgba(63,191,127,.32);}
+.readiness{
+  margin-top:18px; padding:14px 16px; border-radius:12px; border:1px solid var(--border); background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)), var(--panel2);
+  font-size:.86rem;
+}
+.readiness .score{font-weight:800; font-size:1rem; margin-bottom:4px;}
+.nav-row{display:flex; justify-content:space-between; margin-top:22px; gap:12px; align-items:center;}
+.btn{
+  padding:11px 18px; border-radius:10px; border:1px solid var(--border); background:var(--panel2);
+  color:var(--text); cursor:pointer; font-size:.86rem; font-weight:700; transition:all .12s ease;
+}
+.btn:hover:not(:disabled){transform:translateY(-1px); border-color:rgba(239,102,31,.7);}
+.btn.primary{background:linear-gradient(135deg, var(--accent), var(--accent2)); border-color:transparent; color:#fff; box-shadow:0 12px 24px rgba(239,102,31,.22);}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+@media (max-width:600px){.grid2{grid-template-columns:1fr;} .choice-grid{grid-template-columns:1fr 1fr;}}
+.block{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:14px;}
+.block h4{margin:0 0 8px; font-size:.76rem; text-transform:uppercase; color:var(--sub); letter-spacing:.06em;}
+.block ul{margin:0; padding-left:18px; font-size:.87rem;}
+.block li{margin-bottom:5px;}
+.tips{background:linear-gradient(180deg, rgba(232,163,61,.04), rgba(232,163,61,.02)); border:1px solid rgba(232,163,61,.26); border-radius:12px; padding:14px 16px;}
+.tips h4{margin:0 0 8px; font-size:.76rem; text-transform:uppercase; color:var(--warn); letter-spacing:.06em;}
+.tips ul{margin:0; padding-left:18px; font-size:.87rem;}
+.tips li{margin-bottom:5px;}
+.footnote{color:var(--sub); font-size:.74rem; margin-top:16px; border-top:1px solid var(--border); padding-top:10px;}
+.tag{display:inline-block; font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--accent2); font-weight:800; margin-bottom:8px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:.75rem; color:var(--sub); margin-bottom:6px; text-transform:uppercase; letter-spacing:.05em;}
+.field .note{font-size:.72rem; color:var(--sub); margin-top:4px;}
+.calc-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:600px){.calc-grid{grid-template-columns:1fr;}}
+.result-box{
+  background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff;
+  border-radius:14px; padding:20px; margin-top:6px; box-shadow:0 16px 30px rgba(239,102,31,.2);
+}
+.result-box .big{font-size:2.1rem; font-weight:800; letter-spacing:-.04em;}
+.result-box .lbl{font-size:.72rem; text-transform:uppercase; opacity:.86; letter-spacing:.06em; margin-bottom:6px;}
+.result-row{display:flex; justify-content:space-between; font-size:.82rem; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.25);}
+.section-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin:24px 0 12px;}
+.section-head:first-of-type{margin-top:4px;}
+.section-head h3{margin:0; font-size:1rem; letter-spacing:-.015em;}
+.section-head p{margin:3px 0 0; color:var(--sub); font-size:.78rem;}
+.section-number{color:var(--accent2); font-size:.68rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;}
+.form-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px;}
+.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+.check-grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;}
+.check-label{display:flex; align-items:flex-start; gap:9px; padding:11px 12px; border:1px solid var(--border); border-radius:10px; background:var(--panel2); color:var(--text); font-size:.82rem; cursor:pointer;}
+.check-label:has(input:checked){border-color:rgba(255,154,61,.7); background:rgba(255,154,61,.08);}
+.check-label input{accent-color:var(--accent2); margin-top:3px;}
+.mini-card{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:14px;}
+.mini-card h4{margin:0 0 6px; font-size:.76rem; text-transform:uppercase; letter-spacing:.06em; color:var(--sub);}
+.mini-card p{margin:0; font-size:.83rem;}
+.allocation-row{display:grid; grid-template-columns:minmax(145px,1fr) 110px minmax(110px,1fr); gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);}
+.allocation-row:last-child{border-bottom:0;}
+.allocation-row strong{font-size:.84rem;}
+.allocation-row small{display:block; color:var(--sub); font-size:.7rem; margin-top:2px;}
+.allocation-total{display:flex; justify-content:space-between; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:.84rem; font-weight:800;}
+.meter{height:7px; border-radius:999px; background:var(--soft); overflow:hidden; margin-top:7px;}
+.meter span{display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .15s ease;}
+.status-list{display:grid; gap:8px; margin:0; padding:0; list-style:none;}
+.status-list li{display:flex; gap:9px; align-items:flex-start; font-size:.82rem; color:var(--sub);}
+.status-list li::before{content:"✓"; color:var(--good); font-weight:800;}
+.status-list li.warn::before{content:"!"; color:var(--warn);}
+.sequence{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;}
+.sequence-step{position:relative; padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--panel2);}
+.sequence-step:not(:last-child)::after{content:"→"; position:absolute; right:-17px; top:35%; color:var(--accent2); font-weight:800; z-index:1;}
+.sequence-step .step-num{color:var(--accent2); font-size:.68rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase;}
+.sequence-step strong{display:block; margin:5px 0 3px; font-size:.86rem;}
+.sequence-step span{color:var(--sub); font-size:.76rem;}
+.notice{padding:11px 13px; border-radius:10px; border:1px solid rgba(232,163,61,.3); background:rgba(232,163,61,.08); color:var(--warn); font-size:.8rem;}
+.approval{display:flex; gap:12px; flex-wrap:wrap;}
+.approval .check-label{flex:1; min-width:180px;}
+.table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px;}
+.data-table{width:100%; border-collapse:collapse; font-size:.78rem; min-width:520px;}
+.data-table th,.data-table td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--border);}
+.data-table th{color:var(--sub); text-transform:uppercase; font-size:.66rem; letter-spacing:.06em; background:var(--panel2);}
+.data-table tr:last-child td{border-bottom:0;}
+.brief-card{margin-top:18px; padding:18px; border:1px solid rgba(239,102,31,.38); border-radius:14px; background:linear-gradient(135deg, rgba(239,102,31,.1), rgba(255,154,61,.06));}
+.brief-card h3{margin:0 0 5px; font-size:1rem;}
+.brief-card p{margin:0; color:var(--sub); font-size:.82rem;}
+.brief-meta{display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 0;}
+.brief-meta span{padding:5px 9px; border-radius:999px; background:var(--panel2); border:1px solid var(--border); color:var(--sub); font-size:.72rem;}
+@media (max-width:700px){.form-grid,.form-grid.three,.check-grid,.sequence{grid-template-columns:1fr 1fr;} .sequence-step:not(:last-child)::after{display:none;} .allocation-row{grid-template-columns:1fr 90px;}.allocation-row .allocation-status{grid-column:1 / -1;}}
+@media (max-width:480px){.form-grid,.form-grid.three,.check-grid,.sequence{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="app-header">
+      <div>
+        <div class="eyebrow">Strategy Workspace</div>
+        <h1>Blacfox Media Advisor</h1>
+      </div>
+      <div class="header-badge">Performance planning</div>
+    </header>
+    <p class="sub">Goal → platform → objective → readiness → format → playbook → CPL estimate.</p>
+
+    <div class="steps" id="steps"></div>
+    <div class="panel" id="panel"></div>
+  </div>
+
+<script>
+const PLATFORMS = [
+  {id:"LinkedIn", label:"LinkedIn Ads", keywords:["b2b","enterprise","decision maker","professional","account-based","abm","cio","cfo","procurement","saas","tech buyer"]},
+  {id:"TikTok", label:"TikTok Ads", keywords:["gen z","young","viral","trend","short video","brand awareness","reach","mass market","entertainment"]},
+  {id:"X", label:"X Ads", keywords:["news","real-time","conversation","thought leadership","tech community","developer","finance","public affairs"]},
+  {id:"Google", label:"Google Ads", keywords:["search intent","demand capture","people searching","bottom of funnel","high intent","ready to buy","comparison"]},
+  {id:"Meta", label:"Meta Ads", keywords:["broad reach","ecommerce","consumer","retargeting","lookalike","visual","lifestyle","mass audience"]},
+  {id:"Teads", label:"Teads", keywords:["premium publisher","brand safe","video reach","outstream","editorial","contextual","cpm efficient reach"]},
+  {id:"Netline", label:"Netline", keywords:["content syndication","whitepaper","gated content","intent data","b2b leads","account intent","content download"]},
+  {id:"Microsoft", label:"Microsoft Ads", keywords:["enterprise search","desktop","office","linkedin profile targeting","microsoft ecosystem","b2b search"]}
+];
+
+const OBJECTIVES = [
+  {id:"awareness", label:"Awareness", desc:"Get known by a cold audience", keywords:["awareness","launch","introduce","new product","visibility","reach","brand recognition","don't know us","nobody knows"]},
+  {id:"consideration", label:"Consideration / Engagement", desc:"Build interest, content engagement", keywords:["engagement","content","educate","consider","evaluate","thought leadership","video views","interest"]},
+  {id:"leadgen", label:"Lead Generation", desc:"Capture contact/demo requests", keywords:["leads","demo","book a call","pipeline","form fill","contact us","mql","sign up","inquiries"]},
+  {id:"conversion", label:"Conversion / Sales", desc:"Drive purchase or signup", keywords:["sales","purchase","buy","ecommerce","checkout","signup","revenue","conversion","subscribe"]},
+  {id:"retargeting", label:"Retargeting", desc:"Re-engage warm audiences", keywords:["retarget","re-engage","abandoned","came back","warm audience","nurture","website visitors"]}
+];
+
+const QUESTIONS = {
+  awareness: [
+    {q:"Do you have a clear, differentiated message (not just 'we exist')?",
+     no:"Awareness spend without a sharp message just buys impressions nobody remembers. Nail the message first.",
+     yes:"Good — a clear differentiator is what makes awareness spend stick."},
+    {q:"Is your target audience (ICP) narrowly defined, not just 'B2B tech buyers'?",
+     no:"Broad targeting on awareness objectives burns budget on people who'll never buy. Tighten the ICP.",
+     yes:"Good — narrow ICP means awareness impressions land on people worth remembering you."},
+    {q:"Do you have a follow-up plan (retargeting/leadgen) once awareness runs?",
+     no:"Awareness with no follow-up is spend with no path to revenue. Plan the next stage before you launch.",
+     yes:"Good — awareness into a retargeting/leadgen sequence is the right shape."},
+    {q:"Is there budget for sustained frequency over weeks, not a one-off burst?",
+     no:"Awareness needs repeated exposure to actually register — a single short burst rarely moves brand recall.",
+     yes:"Good — sustained frequency is what actually builds recall."},
+    {q:"Do you have a way to measure lift (brand survey, search volume, direct traffic) rather than just impressions?",
+     no:"Without a lift measure, you'll have no way to know if awareness spend actually worked. Set this up before launch.",
+     yes:"Good — measuring lift means you can prove (or disprove) the spend."}
+  ],
+  consideration: [
+    {q:"Has this audience already been exposed to top-of-funnel/brand content?",
+     no:"Consideration content (deep-dives, comparisons, demos) underperforms on a cold audience — they don't have context yet.",
+     yes:"Good fit — consideration content works once there's some brand familiarity."},
+    {q:"Do you have content assets ready (case studies, demo videos, comparison guides)?",
+     no:"Consideration campaigns need substance, not a generic ad — build the asset before you launch spend.",
+     yes:"Good — you have something worth someone's attention span."},
+    {q:"Do you have a way to track engagement depth (video watch %, time on page), not just clicks?",
+     no:"Click counts alone won't tell you if the audience actually considered anything — set up deeper engagement tracking.",
+     yes:"Good — depth metrics tell you if the content is actually landing."},
+    {q:"Is there a next-step CTA (subscribe, download, retarget list) so engaged users don't just disappear?",
+     no:"Engagement with no next step is a dead end — add a CTA that keeps the relationship going.",
+     yes:"Good — engaged users have somewhere to go next."}
+  ],
+  leadgen: [
+    {q:"Has this audience already run through an awareness stage (do they know the brand)?",
+     no:"Cold leadgen with zero prior awareness usually has weak form-fill quality and high SDR-time-wasted. Consider a short awareness/retargeting warm-up first.",
+     yes:"Good — warmer audiences convert to leads at meaningfully better rates."},
+    {q:"Is there evidence of real demand (search volume, inbound interest, competitor activity)?",
+     no:"If there's no demand signal, you may be trying to create demand with a leadgen format — that's an awareness job, not a leadgen job.",
+     yes:"Good — leadgen budget works best against existing, provable demand."},
+    {q:"Do you have a compelling enough offer to justify a form fill (not just 'contact us')?",
+     no:"A weak or vague offer is the single biggest killer of B2B lead form conversion rates. Sharpen the offer before spending.",
+     yes:"Good — a specific offer (audit, demo, benchmark report) converts far better than generic 'contact us'."},
+    {q:"Can sales/SDR follow up on new leads within 24 hours?",
+     no:"Lead value decays fast — leads not contacted within a day convert dramatically worse. Fix the follow-up SLA before scaling spend.",
+     yes:"Good — fast follow-up protects the value of every lead this campaign generates."},
+    {q:"Do you have a defined ICP (industry, company size, job function) to target?",
+     no:"Without a defined ICP, leadgen spend will pull in a lot of unqualified fills. Define the ICP before you launch.",
+     yes:"Good — a defined ICP is what keeps lead quality high."},
+    {q:"Is there a lead scoring or qualification process once leads land in the CRM?",
+     no:"No qualification process means sales wastes time triaging noise — even a simple scoring rule helps.",
+     yes:"Good — qualification means sales time goes to the leads worth it."}
+  ],
+  conversion: [
+    {q:"Is there a clear, low-friction path from ad click to purchase/signup?",
+     no:"If the path to conversion is unclear or has too many steps, conversion campaigns will look expensive when the real problem is the funnel.",
+     yes:"Good — a clean path is what conversion objectives need to actually work."},
+    {q:"Has this funnel already converted leads/traffic at a known rate (even a small test)?",
+     no:"Launching conversion-objective spend on an untested funnel is high risk — run a smaller retargeting/leadgen test first to validate the funnel.",
+     yes:"Good — a validated funnel means the platform's conversion optimisation has something real to learn from."},
+    {q:"Is conversion tracking (pixel/conversion API) correctly implemented and verified?",
+     no:"Bad or missing tracking is the #1 cause of conversion campaigns looking like they fail when they're actually fine — verify this first.",
+     yes:"Good — verified tracking means the platform can actually optimise toward real conversions."},
+    {q:"Do you have enough historical conversion volume for the platform's algorithm to learn from (roughly 50+ conversions/month)?",
+     no:"Low conversion volume starves the algorithm of signal — expect a longer, rockier learning phase.",
+     yes:"Good — sufficient volume lets automated bidding actually optimise."}
+  ],
+  retargeting: [
+    {q:"Do you have a large enough audience (pixel/list) to retarget — generally 1,000+ for stable delivery?",
+     no:"Small retargeting pools deliver inconsistently and can raise costs. Consider widening the window or combining with a lookalike/similar audience.",
+     yes:"Good — sufficient pool size means retargeting will actually deliver at a sane frequency."},
+    {q:"Do you know roughly how long your sales cycle/consideration window is?",
+     no:"Without knowing the typical time-to-decision, it's hard to size the retargeting window (7 days vs 90 days) correctly.",
+     yes:"Good — sizing the retargeting window to the real sales cycle avoids wasting spend too early or too late."},
+    {q:"Are frequency caps in place to avoid ad fatigue/annoyance on the same warm audience?",
+     no:"Uncapped retargeting frequency burns goodwill fast — set a cap before launching.",
+     yes:"Good — frequency caps protect brand perception on a warm, already-aware audience."},
+    {q:"Do you have different creative/messaging for retargeting vs. the original cold ad?",
+     no:"Showing the exact same ad to someone who already saw it wastes the opportunity — vary the message for the next touch.",
+     yes:"Good — varied messaging gives a warm audience a reason to act this time."}
+  ]
+};
+
+// Format library with estimator defaults (no CPL shown in playbook; used only in estimator)
+// mode: "cpm" (budget/CPM*1000 impressions -> CTR -> clicks -> CVR -> leads) or "cpc" (budget/CPC -> clicks -> CVR -> leads)
+const FORMAT_DATA = {
+  "LinkedIn": {
+    "Single Image Ad": {
+      dims: ["1200×627 px (1.91:1) recommended", "1080×1080 px (1:1) also supported", "Max file size 5MB", "JPG/PNG"],
+      copy: ["Intro text: 150 chars before 'see more' (600 max)", "Headline: 70 chars (200 max, truncates ~70)", "Description: 70 chars (100 max)"],
+      tips: ["Lead gen forms convert better than send-to-website for cold B2B audiences", "Put the offer in the first 150 chars — that's all that shows pre-truncation", "Use job title + company size targeting, not just industry", "Refresh creative every 2-3 weeks to fight frequency fatigue"],
+      est: {mode:"cpm", cpm:450, ctr:0.5, cvr:12}
+    },
+    "Carousel Ad": {
+      dims: ["1080×1080 px per card (1:1)", "2–10 cards", "Max 10MB per image"],
+      copy: ["Intro text: 150 chars visible", "Per-card headline: 45 chars recommended"],
+      tips: ["First card carries the weight — treat it like a single-image ad", "Good for multi-feature products or step-by-step value stories", "End with a clear CTA card"],
+      est: {mode:"cpm", cpm:470, ctr:0.55, cvr:11}
+    },
+    "Video Ad": {
+      dims: ["1:1 or 4:5 preferred for feed", "16:9 also supported", "Min 3s, max 30min (aim 15–30s for cold)", "Max 200MB"],
+      copy: ["Intro text: 150 chars", "Headline: 70 chars"],
+      tips: ["Design for sound-off — 80%+ watched muted, use captions", "Front-load the hook in first 3 seconds", "Square/vertical outperforms landscape on mobile"],
+      est: {mode:"cpm", cpm:480, ctr:0.45, cvr:10}
+    },
+    "Document Ad": {
+      dims: ["PDF, PPT, DOC/DOCX", "Max 100MB", "Max 300 pages"],
+      copy: ["Intro text: 150 chars", "Title: 70 chars"],
+      tips: ["Native document ads outperform a PDF download link", "First 2 pages need to sell the rest — preview shown before full view", "Pair with lead gen form to capture non-finishers"],
+      est: {mode:"cpm", cpm:400, ctr:0.6, cvr:15}
+    },
+    "Message/Conversation Ad": {
+      dims: ["Sender must be a real profile with a photo", "Optional banner 300×250"],
+      copy: ["Message body: ~1,500 chars but keep to 500 for read-through", "Opener: under 60 chars"],
+      tips: ["Use for warm/retargeting audiences, not cold prospecting", "Conversation Ads (branching CTAs) outperform single-message for meetings", "Sender identity matters — use a recognisable exec"],
+      est: {mode:"cpm", cpm:600, ctr:3, cvr:8}
+    },
+    "Text Ad": {
+      dims: ["Logo: 100×100 px"],
+      copy: ["Headline: 25 chars", "Description: 75 chars"],
+      tips: ["Best for brand awareness/retargeting at low spend, not primary leadgen", "CTR is low (~0.02–0.04%) — judge accordingly"],
+      est: {mode:"cpm", cpm:150, ctr:0.03, cvr:8}
+    }
+  },
+  "TikTok": {
+    "In-Feed Video": {
+      dims: ["1080×1920 px (9:16) — required", "9–60s (aim 9–15s)", "Max 500MB"],
+      copy: ["Ad text: 100 chars (12–20 recommended for visibility)", "CTA button: preset options"],
+      tips: ["First 2 seconds decide the scroll — open on motion or a bold claim", "Native creator-style content outperforms polished brand video", "Add captions — many users scroll with sound off"],
+      est: {mode:"cpm", cpm:75, ctr:1.2, cvr:6}
+    },
+    "Spark Ads (boosted organic)": {
+      dims: ["Use existing organic TikTok post — 9:16 native"],
+      copy: ["Inherits the organic post's caption — keep it native, not salesy"],
+      tips: ["Borrows the organic post's engagement/social proof — often cheaper CPM than fresh in-feed", "Best when you already have an organic post performing well"],
+      est: {mode:"cpm", cpm:65, ctr:1.4, cvr:6}
+    },
+    "Lead Generation (Instant Form)": {
+      dims: ["Same video specs as In-Feed", "Native lead form, no landing page needed"],
+      copy: ["Form fields: keep to 3-4 max"],
+      tips: ["Good for volume but B2B lead quality is generally weaker than LinkedIn/Google — qualify hard", "Fast follow-up matters even more given TikTok's younger, lower-intent audience for B2B tech"],
+      est: {mode:"cpm", cpm:70, ctr:1.0, cvr:4}
+    }
+  },
+  "X": {
+    "Image Ad": {
+      dims: ["1200×675 px (16:9) recommended", "Max 5MB"],
+      copy: ["Post text: 280 chars (short, punchy performs best)"],
+      tips: ["Works well for thought-leadership/news-adjacent B2B messaging", "Threads/replies from the same handle can extend reach organically"],
+      est: {mode:"cpm", cpm:110, ctr:0.8, cvr:7}
+    },
+    "Video Ad": {
+      dims: ["16:9 or 1:1", "Max 140s (aim under 30s)", "Max 1GB"],
+      copy: ["Post text: 280 chars"],
+      tips: ["Autoplay is muted — lead with captions/on-screen text", "Real-time/news-relevant framing performs above generic brand video here"],
+      est: {mode:"cpm", cpm:120, ctr:0.7, cvr:6}
+    },
+    "Carousel/Website Card": {
+      dims: ["800×418 px (1.91:1) per card", "2–6 cards"],
+      copy: ["Post text: 280 chars", "Card headline: 23 chars"],
+      tips: ["Good for driving click-through to a specific offer or article", "Keep the first card's value prop unmistakable"],
+      est: {mode:"cpm", cpm:115, ctr:0.75, cvr:7}
+    }
+  },
+  "Google": {
+    "Search (RSA)": {
+      dims: ["No image required (RSA); optional image ext. 1200×628 or 1200×1200"],
+      copy: ["Headlines: up to 15, 30 chars each", "Descriptions: up to 4, 90 chars each", "Provide 3+ headline angles for combination testing"],
+      tips: ["Pin only when necessary — pinning limits Google's optimisation", "Match intent tightly: bottom-funnel keywords convert far better than category terms", "Use call-only/lead form extensions for mobile-heavy B2B searches"],
+      est: {mode:"cpc", cpc:28, cvr:6}
+    },
+    "Display": {
+      dims: ["Responsive: 1200×628, 300×250, 336×280, 728×90, 160×600, 1200×1200, 1080×1080", "Logo: 1200×300 and 1200×1200"],
+      copy: ["Headlines: up to 5, 30 chars", "Long headline: 1, 90 chars", "Descriptions: up to 5, 90 chars"],
+      tips: ["Cold Display leadgen for B2B tech is generally inefficient — use for retargeting site visitors", "Exclude placements aggressively to protect performance"],
+      est: {mode:"cpm", cpm:55, ctr:0.4, cvr:3}
+    },
+    "Performance Max": {
+      dims: ["Mix of Search, Display, YouTube, Gmail, Discover — supply Display + video + logo assets"],
+      copy: ["Same asset group limits as Search + Display combined"],
+      tips: ["Feed strong conversion signals (offline conversion import) or it optimises toward junk leads", "Seed with audience signals — don't launch cold", "Pair with brand exclusion lists"],
+      est: {mode:"cpc", cpc:22, cvr:5}
+    },
+    "YouTube (Video)": {
+      dims: ["16:9 primary, 1920×1080", "Also 9:16/1:1 for Shorts/in-feed", "Skippable in-stream: aim 15–30s; Bumper: 6s max"],
+      copy: ["Headline: 15 chars (companion banner)", "Long headline: 90 chars"],
+      tips: ["First 5 seconds must earn the watch", "In-feed/discovery placements cheaper CPL than pre-roll for considered B2B purchases"],
+      est: {mode:"cpm", cpm:90, ctr:0.6, cvr:5}
+    }
+  },
+  "Meta": {
+    "Single Image": {
+      dims: ["1080×1080 px (1:1) feed", "1080×1350 px (4:5) — recommended, more real estate", "1080×1920 px (9:16) Stories/Reels", "Max 30MB"],
+      copy: ["Primary text: ~125 chars before truncation", "Headline: 27 chars", "Description: 27 chars", "Text-on-image: keep under 20%"],
+      tips: ["Use 4:5 as default — more mobile feed real estate than 1:1", "Native lead forms beat landing pages for mobile CPL", "Rotate 3–5 creatives per ad set to fight fatigue"],
+      est: {mode:"cpm", cpm:60, ctr:1.1, cvr:9}
+    },
+    "Video/Reels": {
+      dims: ["1080×1920 px (9:16) for Reels — required", "1080×1080 or 1080×1350 for feed video", "Max 4GB (keep 6–15s for Reels)"],
+      copy: ["Primary text: ~125 chars", "Headline: 27 chars"],
+      tips: ["Hook in first 1–2 seconds", "Native, less-polished style often outperforms studio production for B2B awareness", "Captions mandatory"],
+      est: {mode:"cpm", cpm:55, ctr:1.0, cvr:8}
+    },
+    "Carousel": {
+      dims: ["1080×1080 px per card (1:1)", "2–10 cards", "Max 30MB per image"],
+      copy: ["Primary text: ~125 chars", "Per-card headline: 32 chars"],
+      tips: ["Good for feature breakdowns or step-based case studies", "Last card = strongest CTA, first card = strongest hook"],
+      est: {mode:"cpm", cpm:58, ctr:1.05, cvr:8}
+    },
+    "Lead Ads (native form)": {
+      dims: ["Same creative specs as image/video above"],
+      copy: ["Form questions: keep to 3–4 fields max to protect completion rate"],
+      tips: ["Volume is cheap but needs qualifying questions or fast SDR follow-up", "Sync to CRM within minutes — leads decay fast"],
+      est: {mode:"cpm", cpm:50, ctr:1.3, cvr:11}
+    }
+  },
+  "Teads": {
+    "Outstream Video (inRead)": {
+      dims: ["16:9 source video, auto-adapts in-article", "Recommend 15–30s"],
+      copy: ["Optional companion headline: ~50 chars"],
+      tips: ["Runs inside premium editorial content — strong for brand-safe reach", "Viewability tends to be high since it's in-article, not pre-roll", "Best used for awareness/consideration, not direct leadgen"],
+      est: {mode:"cpm", cpm:130, ctr:0.35, cvr:3}
+    },
+    "Display/Native": {
+      dims: ["300×250, 728×90, 1200×628 standard IAB sizes"],
+      copy: ["Headline: ~50 chars", "Description: ~90 chars"],
+      tips: ["Use for premium publisher reach at scale rather than precision targeting", "Pair with retargeting for a stronger CPL further down funnel"],
+      est: {mode:"cpm", cpm:95, ctr:0.3, cvr:3}
+    }
+  },
+  "Netline": {
+    "Content Syndication (gated asset)": {
+      dims: ["Your existing whitepaper/ebook/report as PDF", "Optional promo image 1200×628"],
+      copy: ["Asset title: keep specific and benefit-led", "Abstract/teaser: 2–3 sentences"],
+      tips: ["Netline sells against intent — make sure the gated asset matches real buyer research behaviour, not just brand content", "Lead quality varies — always run leads through your own qualification/scoring, don't take them at face value", "Best paired with a fast SDR follow-up given leads arrive pre-qualified by topic interest"],
+      est: {mode:"flat", flatCpl:380}
+    },
+    "Intent-Based Audience Targeting": {
+      dims: ["No creative dimensions — targeting layer, not a creative unit"],
+      copy: ["N/A — delivered against your existing content asset"],
+      tips: ["Use to prioritise accounts already showing research intent on relevant topics", "Combine with your CRM's target account list (ABM) for tighter fit"],
+      est: {mode:"flat", flatCpl:420}
+    }
+  },
+  "Microsoft": {
+    "Search (RSA)": {
+      dims: ["No image required; multimedia ads support 1200×628, 1:1"],
+      copy: ["Headlines: up to 15, 30 chars", "Descriptions: up to 4, 90 chars"],
+      tips: ["Skews older, higher-income, desktop B2B/enterprise — good fit for enterprise tech", "Import Google Ads campaigns to save setup time, then re-tune bids", "Use LinkedIn Profile Targeting (industry/company/job function) — Microsoft's key B2B differentiator"],
+      est: {mode:"cpc", cpc:20, cvr:6}
+    },
+    "Audience/Native Ads": {
+      dims: ["1200×628 (1.91:1), 1200×1200 (1:1), 300×300 logo"],
+      copy: ["Headline: 30 chars (short), Long headline: 90 chars", "Description: 90 chars"],
+      tips: ["Runs across MSN, Outlook.com, Edge — strong for corporate/enterprise desktop reach", "Layer LinkedIn Profile Targeting on top for account-based reach"],
+      est: {mode:"cpm", cpm:65, ctr:0.5, cvr:5}
+    }
+  }
+};
+
+let state = {
+  step: 0, goal: "", recPlatforms: [], recObjective: null, platforms: [], platform: null, objective: null,
+  answers: {}, format: null, icp: {industry:"", companySize:"", seniority:"", jobFunction:"", geography:"", exclusions:[]},
+  budget: 20000, allocation: {}, pacing: {duration:3, startDate:"", endDate:""}, attribution:"multi-touch",
+  testing: {variants:3, isolate:"Hook", threshold:"", killCpl:""}, tracking: {campaign:"", date:"", consent:false},
+  production: {owner:"Client", turnaround:"10", accessibility:[]}, approvals: {brief:false, budget:false, tracking:false}
+};
+
+const STEP_LABELS = ["Goal", "Platform", "Objective", "ICP", "Readiness", "Budget", "Format", "Playbook", "Plan", "Estimate"];
+const stepsEl = document.getElementById('steps');
+const panel = document.getElementById('panel');
+
+function scoreText(text, items){
+  const t = text.toLowerCase();
+  return items.map(it => ({...it, score: it.keywords.reduce((s,k)=> s + (t.includes(k)?1:0), 0)}))
+              .sort((a,b)=>b.score-a.score);
+}
+
+function computeRecommendations(){
+  if(!state.goal || state.goal.trim().length < 3){ state.recPlatforms = []; state.recObjective = null; return; }
+  const pScored = scoreText(state.goal, PLATFORMS);
+  state.recPlatforms = pScored.filter(p=>p.score>0).slice(0,3).map(p=>p.id);
+  const oScored = scoreText(state.goal, OBJECTIVES);
+  state.recObjective = oScored[0].score > 0 ? oScored[0].id : null;
+}
+
+const PLATFORM_REASONS = {
+  LinkedIn: "Its professional and company-level targeting is strongest for reaching defined B2B decision-makers.",
+  TikTok: "Its native short-video environment is well suited to younger audiences, reach and fast awareness-building.",
+  X: "Its real-time conversation and interest-based environment fits news, thought leadership and technical communities.",
+  Google: "It captures people already searching for a solution, making it the strongest fit for high-intent demand.",
+  Meta: "Its broad reach, visual formats and retargeting tools make it effective for consumer and ecommerce growth.",
+  Teads: "Its premium publisher network is a strong fit for brand-safe video reach and contextual awareness.",
+  Netline: "Its content syndication and intent data are designed to generate B2B leads from active researchers.",
+  Microsoft: "Its enterprise audience, desktop reach and LinkedIn profile targeting are valuable for B2B search."
+};
+
+function renderGoalInsight(){
+  const insight = panel.querySelector('#goalInsight');
+  if(!insight) return;
+  if(state.goal.trim().length < 3){
+    insight.innerHTML = '';
+    return;
+  }
+  const bestId = state.recPlatforms[0];
+  if(!bestId){
+    insight.innerHTML = `<div class="insight-label">Early recommendation</div><strong>Add a little more detail to sharpen the platform recommendation.</strong><div class="insight-detail">The campaign objective will unlock a more precise recommendation too.</div>`;
+    return;
+  }
+  const platform = PLATFORMS.find(p=>p.id===bestId);
+  const matchedTerms = platform.keywords.filter(keyword=>state.goal.toLowerCase().includes(keyword)).slice(0,2);
+  const evidence = matchedTerms.length ? `Your brief points to ${matchedTerms.join(' and ')}.` : PLATFORM_REASONS[bestId];
+  insight.innerHTML = `<div class="insight-label">Recommended starting point</div><strong>${platform.label}</strong><div class="insight-detail">${evidence} ${PLATFORM_REASONS[bestId]}</div><div class="insight-detail">Once you choose the campaign objective, I can give you more specific guidance on fit, format and expected performance.</div>`;
+}
+
+function renderSteps(){
+  stepsEl.innerHTML = STEP_LABELS.map((l,i)=>{˝
+    let cls = 'step-pill';
+    if(i < state.step) cls += ' done';
+    if(i === state.step) cls += ' active';
+    return `<button class="${cls}" data-step="${i}" type="button">${i+1}. ${l}</button>`;
+  }).join('');
+  stepsEl.querySelectorAll('.step-pill').forEach(button=>{
+    button.onclick = ()=>navigateToStage(Number(button.dataset.step));
+  });
+}
+
+function goto(step){ state.step = step; render(); }
+
+function navigateToStage(target){
+  let destination = target;
+  if(destination >= 2 && !state.platforms.length) destination = 1;
+  if(destination >= 3 && !state.objective) destination = 2;
+  if(destination >= 4 && !state.icp.industry) destination = 3;
+  if(destination >= 7 && !state.format) destination = 6;
+  goto(destination);
+}
+
+function render(){
+  renderSteps();
+  if(state.step === 0) renderGoal();
+  else if(state.step === 1) renderPlatform();
+  else if(state.step === 2) renderObjective();
+  else if(state.step === 3) renderIcp();
+  else if(state.step === 4) renderReadiness();
+  else if(state.step === 5) renderBudget();
+  else if(state.step === 6) renderFormatPicker();
+  else if(state.step === 7) renderPlaybook();
+  else if(state.step === 8) renderPlan();
+  else renderEstimator();
+}
+
+function renderGoal(){
+  panel.innerHTML = `
+    <h2>1. What are you trying to achieve?</h2>
+    <p class="hint">A sentence or two is enough — this drives the platform and objective suggestions next.</p>
+    <textarea id="goalInput" placeholder="e.g. We're launching a new product in the SAP ecosystem and need to book demos with IT decision-makers at mid-size enterprises...">${state.goal}</textarea>
+    <div id="goalInsight" class="goal-insight" aria-live="polite"></div>
+    <div class="nav-row">
+      <span></span>
+      <button class="btn primary" id="next">Continue →</button>
+    </div>
+  `;
+  const goalInput = panel.querySelector('#goalInput');
+  goalInput.oninput = ()=>{
+    state.goal = goalInput.value;
+    computeRecommendations();
+    renderGoalInsight();
+  };
+  panel.querySelector('#next').onclick = ()=>{
+    state.goal = goalInput.value;
+    computeRecommendations();
+    goto(1);
+  };
+  renderGoalInsight();
+}
+
+function renderPlatform(){
+  const hasRec = state.recPlatforms.length > 0;
+  const bestPlatform = hasRec ? PLATFORMS.find(p=>p.id===state.recPlatforms[0]) : null;
+  panel.innerHTML = `
+    <h2>2. Choose platforms</h2>
+    <p class="hint">Select one or more platforms. The highlighted ones fit what you described, and the budget stage will split spend across your selections.</p>
+    ${hasRec ? `<div class="rec-note"><strong>Best starting point: ${bestPlatform.label}</strong> — ${PLATFORM_REASONS[bestPlatform.id]}<br><span style="opacity:.82">More insight becomes available after you decide on the campaign objective.</span><br><span style="opacity:.82">Other platforms worth considering: ${state.recPlatforms.slice(1).map(id=>PLATFORMS.find(p=>p.id===id).label).join(', ') || 'none identified yet'}.</span></div>` : ''}
+    <div class="choice-grid">
+      ${PLATFORMS.map(p => `<button class="choice-btn${state.platforms.includes(p.id)?' selected':''}${state.recPlatforms.includes(p.id)?' recommended':''}" data-p="${p.id}">${state.recPlatforms.includes(p.id)?'<span class="rec-badge">FIT</span>':''}${p.label}<span class="desc">${state.platforms.includes(p.id) ? 'Selected for this plan' : 'Add to plan'}</span></button>`).join('')}
+    </div>
+    <div class="nav-row">
+      <button class="btn" id="back">← Back</button>
+      <button class="btn primary" id="next" ${state.platforms.length ? '' : 'disabled'}>Continue with ${state.platforms.length || 0} platform${state.platforms.length === 1 ? '' : 's'} →</button>
+    </div>
+  `;
+  panel.querySelectorAll('.choice-btn').forEach(b=>{
+    b.onclick = ()=>{
+      const id = b.dataset.p;
+      state.platforms = state.platforms.includes(id) ? state.platforms.filter(platform=>platform !== id) : [...state.platforms, id];
+      state.platform = state.platforms[0] || null;
+      state.objective=null; state.answers={}; state.format=null;
+      renderPlatform();
+    };
+  });
+  panel.querySelector('#back').onclick = ()=>goto(0);
+  panel.querySelector('#next').onclick = ()=>goto(2);
+}
+
+function renderObjective(){
+  const hasRec = !!state.recObjective;
+  const selectedLabels = state.platforms.map(id=>PLATFORMS.find(p=>p.id===id).label).join(' + ');
+  panel.innerHTML = `
+    <h2>3. Campaign objective</h2>
+    <p class="hint">Applies across: <strong style="color:var(--accent2)">${selectedLabels}</strong>. The highlighted objective best matches your stated goal.</p>
+    ${hasRec ? `<div class="rec-note">Suggested objective: <strong>${OBJECTIVES.find(o=>o.id===state.recObjective).label}</strong></div>` : ''}
+    <div class="choice-grid">
+      ${OBJECTIVES.map(o => `<button class="choice-btn${state.objective===o.id?' selected':''}${state.recObjective===o.id?' recommended':''}" data-o="${o.id}">${state.recObjective===o.id?'<span class="rec-badge">FIT</span>':''}${o.label}<span class="desc">${o.desc}</span></button>`).join('')}
+    </div>
+    <div class="nav-row">
+      <button class="btn" id="back">← Back</button>
+      <span></span>
+    </div>
+  `;
+  panel.querySelectorAll('.choice-btn').forEach(b=>{
+    b.onclick = ()=>{ state.objective = b.dataset.o; state.answers={}; goto(3); };
+  });
+  panel.querySelector('#back').onclick = ()=>goto(1);
+}
+
+function renderIcp(){
+  const i = state.icp;
+  panel.innerHTML = `
+    <span class="tag">Audience foundation</span>
+    <h2>4. Build the ICP</h2>
+    <p class="hint">A defined audience improves readiness decisions and gives the estimator a more credible conversion-rate assumption.</p>
+    <div class="form-grid three">
+      <div class="field"><label>Industry</label><input id="industry" type="text" value="${i.industry}" placeholder="e.g. Financial services"></div>
+      <div class="field"><label>Company size</label><select id="companySize"><option value="">Choose size</option><option>1–50 employees</option><option>51–250 employees</option><option>251–1,000 employees</option><option>1,001+ employees</option></select></div>
+      <div class="field"><label>Geography</label><input id="geography" type="text" value="${i.geography}" placeholder="e.g. South Africa"></div>
+      <div class="field"><label>Job function</label><input id="jobFunction" type="text" value="${i.jobFunction}" placeholder="e.g. IT, Finance, Procurement"></div>
+      <div class="field"><label>Seniority</label><input id="seniority" type="text" value="${i.seniority}" placeholder="e.g. Manager to C-suite"></div>
+    </div>
+    <div class="section-head"><div><div class="section-number">Protection</div><h3>Exclusions</h3><p>Keep spend away from audiences that should not be acquired.</p></div></div>
+    <div class="check-grid">
+      ${['Existing customers','Competitors','Internal staff','Current open opportunities','Students / job seekers','Unqualified geographies'].map(x=>`<label class="check-label"><input type="checkbox" value="${x}" ${i.exclusions.includes(x)?'checked':''}>${x}</label>`).join('')}
+    </div>
+    <div class="notice" style="margin-top:14px">Use the same exclusions in platform audiences, CRM suppression lists and reporting filters so raw lead volume does not mask quality.</div>
+    <div class="nav-row"><button class="btn" id="back">← Back</button><button class="btn primary" id="next">Continue to readiness →</button></div>
+  `;
+  const size = panel.querySelector('#companySize');
+  size.value = i.companySize;
+  const sync = ()=>{
+    i.industry = panel.querySelector('#industry').value; i.companySize = size.value;
+    i.geography = panel.querySelector('#geography').value; i.jobFunction = panel.querySelector('#jobFunction').value; i.seniority = panel.querySelector('#seniority').value;
+    i.exclusions = [...panel.querySelectorAll('.check-label input:checked')].map(input=>input.value);
+  };
+  panel.querySelectorAll('input, select').forEach(input=>input.addEventListener('input', sync));
+  panel.querySelectorAll('.check-label input').forEach(input=>input.addEventListener('change', sync));
+  panel.querySelector('#back').onclick = ()=>goto(2);
+  panel.querySelector('#next').onclick = ()=>{ sync(); goto(4); };
+}
+
+function renderReadiness(){
+  const qs = QUESTIONS[state.objective];
+  const objLabel = OBJECTIVES.find(o=>o.id===state.objective).label;
+  panel.innerHTML = `
+    <span class="tag">${PLATFORMS.find(p=>p.id===state.platform).label} · ${objLabel}</span>
+    <h2>5. Readiness check</h2>
+    <p class="hint">Answer honestly — these flag whether ${objLabel.toLowerCase()} is the right objective right now, before you spend on it.</p>
+    <div class="rec-note">ICP captured: <strong>${Object.values(state.icp).filter(value=>Array.isArray(value) ? value.length > 0 : String(value).trim().length > 0).length}/6 audience fields</strong>. This will inform the conversion-rate assumption in the estimator. ${state.icp.exclusions.length ? `Exclusions active: ${state.icp.exclusions.join(', ')}.` : 'Add suppression audiences before launch.'}</div>
+    <div id="qwrap"></div>
+    <div class="readiness" id="readinessSummary" style="display:none;"></div>
+    <div class="nav-row">
+      <button class="btn" id="back">← Back</button>
+      <button class="btn primary" id="next" disabled>Continue to budget →</button>
+    </div>
+  `;
+  const qwrap = panel.querySelector('#qwrap');
+  qs.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'qcard';
+    div.innerHTML = `
+      <p class="q">${item.q}</p>
+      <div class="yn">
+        <button data-idx="${idx}" data-val="yes">Yes</button>
+        <button data-idx="${idx}" data-val="no">No</button>
+      </div>
+      <div class="feedback" id="fb-${idx}"></div>
+    `;
+    qwrap.appendChild(div);
+  });
+  qwrap.querySelectorAll('button[data-val]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = btn.dataset.idx, val = btn.dataset.val;
+      state.answers[idx] = val;
+      const card = btn.closest('.qcard');
+      card.querySelectorAll('.yn button').forEach(b=>b.classList.remove('sel-yes','sel-no'));
+      btn.classList.add(val==='yes' ? 'sel-yes' : 'sel-no');
+      const fb = card.querySelector('.feedback');
+      fb.textContent = val === 'yes' ? qs[idx].yes : qs[idx].no;
+      fb.className = 'feedback show ' + (val==='yes' ? 'good' : 'warn');
+      updateReadinessSummary(qs);
+    };
+  });
+  panel.querySelector('#back').onclick = ()=>goto(3);
+  panel.querySelector('#next').onclick = ()=>goto(5);
+}
+
+function updateReadinessSummary(qs){
+  const answered = Object.keys(state.answers).length;
+  const nextBtn = panel.querySelector('#next');
+  if(answered === qs.length) nextBtn.disabled = false;
+  const yesCount = Object.values(state.answers).filter(v=>v==='yes').length;
+  const summary = panel.querySelector('#readinessSummary');
+  if(answered > 0){
+    summary.style.display = 'block';
+    const pct = Math.round((yesCount/qs.length)*100);
+    let verdict, color;
+    if(answered < qs.length){ verdict = `${answered}/${qs.length} answered`; color='var(--sub)'; }
+    else if(pct >= 75){ verdict = 'Solid foundation for this objective.'; color='var(--good)'; }
+    else if(pct >= 40){ verdict = 'Workable, but address the flagged gaps to protect performance.'; color='var(--warn)'; }
+    else { verdict = 'Several foundational gaps — consider fixing these (or choosing a different objective) before spending.'; color='var(--bad)'; }
+    summary.innerHTML = `<div class="score" style="color:${color}">Readiness: ${yesCount}/${qs.length} yes</div>${verdict}`;
+  }
+}
+
+const PLATFORM_MIN_BUDGET = {LinkedIn:12000, Microsoft:8000, Google:8000, Meta:6000, TikTok:15000, X:7000, Teads:25000, Netline:30000};
+
+function renderBudget(){
+  const candidates = state.platforms.length ? state.platforms : [state.platform];
+  if(!Object.keys(state.allocation).length) candidates.forEach((id,index)=>state.allocation[id] = index === 0 ? Math.round(100/candidates.length) : 100 - Math.round(100/candidates.length)*(candidates.length-1));
+  panel.innerHTML = `
+    <span class="tag">Planning economics</span>
+    <h2>6. Budget allocation & pacing</h2>
+    <p class="hint">Split spend across the platforms that fit the brief, but protect each channel from being underfunded and front-loaded.</p>
+    <div class="form-grid three">
+      <div class="field"><label>Monthly budget (ZAR)</label><input id="totalBudget" type="number" min="0" value="${state.budget}"></div>
+      <div class="field"><label>Campaign duration (months)</label><input id="duration" type="number" min="1" max="24" value="${state.pacing.duration}"></div>
+      <div class="field"><label>Start date</label><input id="startDate" type="date" value="${state.pacing.startDate}"></div>
+    </div>
+    <div class="section-head"><div><div class="section-number">Allocation</div><h3>Recommended channel split</h3><p>Percentages are editable. Totals should equal 100%.</p></div></div>
+    <div class="mini-card" id="allocationCard">
+      ${candidates.map(id=>`<div class="allocation-row"><div><strong>${PLATFORMS.find(p=>p.id===id).label}</strong><small>Minimum viable: R${PLATFORM_MIN_BUDGET[id].toLocaleString()}/month</small></div><input class="allocation-input" data-platform="${id}" type="number" min="0" max="100" value="${state.allocation[id] || 0}"><div class="allocation-status" id="status-${id}"></div></div>`).join('')}
+      <div class="allocation-total"><span>Total allocation</span><span id="allocationTotal">0%</span></div>
+    </div>
+    <div class="section-head"><div><div class="section-number">Guardrails</div><h3>Pacing protection</h3><p>Daily caps prevent the plan from spending out in the first half of the flight.</p></div></div>
+    <div class="grid2"><div class="mini-card"><h4>Monthly pacing cap</h4><p id="monthlyPacing"></p><div class="meter"><span id="pacingMeter"></span></div></div><div class="mini-card"><h4>Daily planning ceiling</h4><p id="dailyPacing"></p><div class="notice" style="margin-top:10px">Review delivery at day 7, 14 and 21. Do not increase budgets faster than 20% every 72 hours while learning.</div></div></div>
+    <div class="nav-row"><button class="btn" id="back">← Back</button><button class="btn primary" id="next">Continue to ad formats →</button></div>
+  `;
+  const update = ()=>{
+    state.budget = parseFloat(panel.querySelector('#totalBudget').value) || 0;
+    state.pacing.duration = parseInt(panel.querySelector('#duration').value,10) || 1;
+    state.pacing.startDate = panel.querySelector('#startDate').value;
+    let total = 0;
+    panel.querySelectorAll('.allocation-input').forEach(input=>{ const id=input.dataset.platform; state.allocation[id]=Math.max(0,Math.min(100,parseFloat(input.value)||0)); total += state.allocation[id]; const monthly=state.budget*state.allocation[id]/100; const status=panel.querySelector('#status-'+id); status.innerHTML = monthly < PLATFORM_MIN_BUDGET[id] ? `<span style="color:var(--warn);font-size:.72rem">Below learning budget: R${Math.round(monthly).toLocaleString()}</span>` : `<span style="color:var(--good);font-size:.72rem">Viable: R${Math.round(monthly).toLocaleString()}/mo</span>`; });
+    panel.querySelector('#allocationTotal').textContent = `${Math.round(total)}%`;
+    panel.querySelector('#allocationTotal').style.color = Math.round(total) === 100 ? 'var(--good)' : 'var(--warn)';
+    const daily = state.budget / (state.pacing.duration * 30);
+    panel.querySelector('#monthlyPacing').textContent = `R${Math.round(state.budget).toLocaleString()} per month; R${Math.round(state.budget * state.pacing.duration).toLocaleString()} planned across the full flight`;
+    panel.querySelector('#dailyPacing').textContent = `Keep average daily spend near R${Math.round(state.budget/30).toLocaleString()} in each month.`;
+    panel.querySelector('#pacingMeter').style.width = `${Math.min(100, (daily / Math.max(1,state.budget/10))*100)}%`;
+  };
+  panel.querySelectorAll('input').forEach(input=>input.addEventListener('input', update)); update();
+  panel.querySelector('#back').onclick = ()=>goto(4);
+  panel.querySelector('#next').onclick = ()=>goto(6);
+}
+
+function renderFormatPicker(){
+  const formats = Object.keys(FORMAT_DATA[state.platform]);
+  const objLabel = OBJECTIVES.find(o=>o.id===state.objective).label;
+  panel.innerHTML = `
+    <span class="tag">${PLATFORMS.find(p=>p.id===state.platform).label} · ${objLabel}</span>
+    <h2>7. Choose an ad format</h2>
+    <p class="hint">Formats available on ${PLATFORMS.find(p=>p.id===state.platform).label}.</p>
+    <div class="choice-grid">
+      ${formats.map(f => `<button class="choice-btn${state.format===f?' selected':''}" data-f="${f}">${f}</button>`).join('')}
+    </div>
+    <div class="nav-row">
+      <button class="btn" id="back">← Back</button>
+      <span></span>
+    </div>
+  `;
+  panel.querySelectorAll('.choice-btn').forEach(b=>{
+    b.onclick = ()=>{ state.format = b.dataset.f; goto(7); };
+  });
+  panel.querySelector('#back').onclick = ()=>goto(5);
+}
+
+function renderPlaybook(){
+  const d = FORMAT_DATA[state.platform][state.format];
+  const objLabel = OBJECTIVES.find(o=>o.id===state.objective).label;
+  panel.innerHTML = `
+    <span class="tag">${PLATFORMS.find(p=>p.id===state.platform).label} · ${objLabel}</span>
+    <h2>8. ${state.format}</h2>
+    <div class="grid2">
+      <div class="block">
+        <h4>Creative dimensions</h4>
+        <ul>${d.dims.map(x=>`<li>${x}</li>`).join('')}</ul>
+      </div>
+      <div class="block">
+        <h4>Copy limits</h4>
+        <ul>${d.copy.map(x=>`<li>${x}</li>`).join('')}</ul>
+      </div>
+    </div>
+    <div class="tips">
+      <h4>Best practice</h4>
+      <ul>${d.tips.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+    <p class="footnote">Dimensions and copy limits reflect current platform specs — always double-check against the ad manager before final upload, as platforms update these periodically.</p>
+    <div class="nav-row">
+      <button class="btn" id="back">← Back</button>
+      <button class="btn primary" id="next">Build the campaign plan →</button>
+    </div>
+  `;
+  panel.querySelector('#back').onclick = ()=>goto(6);
+  panel.querySelector('#next').onclick = ()=>goto(8);
+}
+
+function renderPlan(){
+  const selected = state.platform;
+  const sequence = state.platforms.length ? state.platforms.slice(0,3) : [selected];
+  const campaignSlug = (state.goal || 'campaign').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,34) || 'campaign';
+  const formatSlug = state.format.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const dateSlug = state.tracking.date || new Date().toISOString().slice(0,10);
+  const utm = `utm_source=${selected.toLowerCase()}&utm_medium=paid&utm_campaign=${campaignSlug}&utm_content=${formatSlug}&utm_term=${dateSlug}`;
+  panel.innerHTML = `
+    <span class="tag">Integrated campaign plan</span>
+    <h2>9. Sequence, test and govern the launch</h2>
+    <p class="hint">This turns the channel choice into a coordinated plan, with measurement and approval controls before spend goes live.</p>
+    <div class="section-head"><div><div class="section-number">Funnel sequencing</div><h3>Suggested journey</h3><p>Use timing between stages to move people from attention to intent and conversion.</p></div></div>
+    <div class="sequence">
+      ${sequence.map((id,index)=>`<div class="sequence-step"><div class="step-num">Stage ${index+1}</div><strong>${PLATFORMS.find(p=>p.id===id).label}</strong><span>${index===0 ? 'Build reach and qualified awareness' : index===1 ? 'Capture active search or research intent' : 'Retarget engaged visitors and leads'}</span><div class="field" style="margin:12px 0 0"><label>Timing</label><select class="timing-input" data-stage="${index}"><option>Weeks 1–2</option><option>Weeks 3–4</option><option>Weeks 5–6</option><option>Always-on</option></select></div></div>`).join('')}
+    </div>
+    <div class="form-grid" style="margin-top:14px"><div class="field"><label>Attribution assumption</label><select id="attribution"><option value="single-touch">Single-touch: credit the final converting channel</option><option value="multi-touch">Multi-touch: recognise influence across the journey</option></select></div><div class="mini-card"><h4>Planning note</h4><p id="sequenceNote">A multi-touch plan is recommended when awareness, search and retargeting work together.</p></div></div>
+    <div class="section-head"><div><div class="section-number">Testing and optimisation</div><h3>Creative test matrix</h3><p>Isolate one variable at a time so the result teaches you something.</p></div></div>
+    <div class="form-grid three"><div class="field"><label>Variants per test</label><input id="variants" type="number" min="2" max="8" value="${state.testing.variants}"></div><div class="field"><label>Primary variable</label><select id="isolate"><option>Hook</option><option>Offer</option><option>CTA</option><option>Audience</option></select></div><div class="field"><label>Minimum conversions before judging</label><input id="threshold" type="number" min="1" placeholder="e.g. 30" value="${state.testing.threshold}"></div></div>
+    <div class="grid2"><div class="mini-card"><h4>Suggested matrix</h4><p>${state.testing.variants} variants, with the ${state.testing.isolate.toLowerCase()} isolated. Keep audience, placement and landing page constant.</p></div><div class="mini-card"><h4>Kill / rework rule</h4><p>Pause a variant after at least 1,000 impressions or 30 clicks if CTR is below benchmark, or once it reaches 1.5× target CPL without a qualified lead.</p></div></div>
+    <div class="section-head"><div><div class="section-number">Tracking and measurement</div><h3>Reporting foundation</h3><p>Track quality beyond raw form fills.</p></div></div>
+    <div class="form-grid"><div class="mini-card"><h4>UTM naming convention</h4><code id="utmOutput" style="display:block;overflow-wrap:anywhere;color:var(--accent2);font-size:.77rem;margin:8px 0">${utm}</code><div class="form-grid"><div class="field"><label>Campaign name</label><input id="campaignName" type="text" value="${campaignSlug}"></div><div class="field"><label>Reporting date</label><input id="trackingDate" type="date" value="${state.tracking.date}"></div></div></div><div class="mini-card"><h4>Conversion checklist</h4><ul class="status-list"><li>Platform pixel / tag fires on the confirmed conversion</li><li>Conversions API or server-side backup is configured where available</li><li>CRM lead IDs can be matched for offline conversion import</li><li class="warn">POPIA consent line is present and records consent purpose</li></ul></div></div>
+    <div class="notice" style="margin-top:14px">POPIA checkpoint: use a clear consent statement such as “I agree to Blacfox and [client] processing my details to respond to this request and share relevant marketing communications. I can withdraw consent at any time.” Confirm wording with your legal/privacy owner before launch.</div>
+    <div class="section-head"><div><div class="section-number">Quality and production</div><h3>Lead definition and asset readiness</h3><p>A cheap lead is not a good lead if it never becomes pipeline.</p></div></div>
+    <div class="grid2"><div class="mini-card"><h4>Good lead definition</h4><p>${state.icp.industry || 'Target industry'} organisation, ${state.icp.companySize || 'target company size'}, in ${state.icp.jobFunction || 'the target job function'}, at ${state.icp.seniority || 'the target seniority'} in ${state.icp.geography || 'the target geography'}, with a valid business need and permission to follow up.</p><p style="margin-top:8px;color:var(--sub)">Report CTR, CPM, CVR, lead-to-MQL rate and lead-to-pipeline value alongside CPL.</p></div><div class="mini-card"><h4>Production owner</h4><div class="form-grid"><div class="field"><label>Asset owner</label><select id="productionOwner"><option>Client</option><option>In-house</option><option>Freelance</option><option>Agency</option></select></div><div class="field"><label>Turnaround (business days)</label><input id="turnaround" type="number" min="1" value="${state.production.turnaround}"></div></div><div class="check-grid"><label class="check-label"><input type="checkbox" value="Captions" class="accessibility-check">Captions / transcript</label><label class="check-label"><input type="checkbox" value="Contrast" class="accessibility-check">Accessible contrast</label><label class="check-label"><input type="checkbox" value="Safe zones" class="accessibility-check">Platform safe zones</label><label class="check-label"><input type="checkbox" value="Logo" class="accessibility-check">Logo clear space</label></div></div></div>
+    <div class="section-head"><div><div class="section-number">Approval gate</div><h3>Sign off before spend goes live</h3><p>All three checks must be complete before launch.</p></div></div>
+    <div class="approval"><label class="check-label"><input type="checkbox" id="briefApproval">Brief and audience approved</label><label class="check-label"><input type="checkbox" id="budgetApproval">Budget and flight dates approved</label><label class="check-label"><input type="checkbox" id="trackingApproval">Tracking and POPIA review verified</label></div>
+    <div class="nav-row"><button class="btn" id="back">← Back</button><button class="btn primary" id="next">Estimate performance →</button></div>
+  `;
+  panel.querySelector('#attribution').value = state.attribution;
+  panel.querySelector('#isolate').value = state.testing.isolate;
+  panel.querySelector('#productionOwner').value = state.production.owner;
+  panel.querySelector('#briefApproval').checked = state.approvals.brief;
+  panel.querySelector('#budgetApproval').checked = state.approvals.budget;
+  panel.querySelector('#trackingApproval').checked = state.approvals.tracking;
+  const sync = ()=>{
+    state.attribution=panel.querySelector('#attribution').value; state.testing.variants=parseInt(panel.querySelector('#variants').value,10)||2; state.testing.isolate=panel.querySelector('#isolate').value; state.testing.threshold=panel.querySelector('#threshold').value;
+    state.tracking.campaign=panel.querySelector('#campaignName').value; state.tracking.date=panel.querySelector('#trackingDate').value; state.production.owner=panel.querySelector('#productionOwner').value; state.production.turnaround=panel.querySelector('#turnaround').value;
+    state.production.accessibility=[...panel.querySelectorAll('.accessibility-check:checked')].map(x=>x.value); state.approvals.brief=panel.querySelector('#briefApproval').checked; state.approvals.budget=panel.querySelector('#budgetApproval').checked; state.approvals.tracking=panel.querySelector('#trackingApproval').checked;
+    const liveCampaign = state.tracking.campaign || 'campaign';
+    const liveDate = state.tracking.date || new Date().toISOString().slice(0,10);
+    panel.querySelector('#utmOutput').textContent = `utm_source=${selected.toLowerCase()}&utm_medium=paid&utm_campaign=${liveCampaign}&utm_content=${formatSlug}&utm_term=${liveDate}`;
+  };
+  panel.querySelectorAll('input, select').forEach(input=>input.addEventListener('input', sync));
+  panel.querySelectorAll('input[type=checkbox]').forEach(input=>input.addEventListener('change', sync));
+  panel.querySelector('#back').onclick = ()=>goto(7);
+  panel.querySelector('#next').onclick = ()=>{ sync(); goto(9); };
+}
+
+function renderEstimator(){
+  const d = FORMAT_DATA[state.platform][state.format];
+  const est = d.est;
+  const icpCompleteness = Object.values(state.icp).filter(value=>Array.isArray(value) ? value.length > 0 : String(value).trim().length > 0).length;
+  const cvrAdjustment = icpCompleteness >= 4 ? 1.15 : icpCompleteness >= 2 ? 1 : .8;
+  const adjustedCvr = +(est.cvr * cvrAdjustment).toFixed(1);
+  let fieldsHtml = '';
+  if(est.mode === 'cpm'){
+    fieldsHtml = `
+      <div class="field"><label>Monthly budget (ZAR)</label><input type="number" id="budget" value="20000" min="0"></div>
+      <div class="field"><label>Estimated CPM (ZAR)</label><input type="number" id="cpm" value="${est.cpm}" min="0"><div class="note">Cost per 1,000 impressions — platform/format benchmark, override with your own data if available.</div></div>
+      <div class="field"><label>Estimated CTR (%)</label><input type="number" id="ctr" value="${est.ctr}" step="0.01" min="0"></div>
+      <div class="field"><label>Landing page / form conversion rate (%)</label><input type="number" id="cvr" value="${adjustedCvr}" step="0.1" min="0"><div class="note">Starting assumption adjusted for ICP completeness (${icpCompleteness}/6 fields).</div></div>
+    `;
+  } else if(est.mode === 'cpc'){
+    fieldsHtml = `
+      <div class="field"><label>Monthly budget (ZAR)</label><input type="number" id="budget" value="20000" min="0"></div>
+      <div class="field"><label>Estimated CPC (ZAR)</label><input type="number" id="cpc" value="${est.cpc}" min="0"><div class="note">Average cost per click — benchmark, override with your own account data if available.</div></div>
+      <div class="field"><label>Landing page / form conversion rate (%)</label><input type="number" id="cvr" value="${adjustedCvr}" step="0.1" min="0"><div class="note">Starting assumption adjusted for ICP completeness (${icpCompleteness}/6 fields).</div></div>
+    `;
+  } else {
+    fieldsHtml = `
+      <div class="field"><label>Monthly budget (ZAR)</label><input type="number" id="budget" value="20000" min="0"></div>
+      <div class="field"><label>Estimated cost per lead (ZAR)</label><input type="number" id="flatCpl" value="${est.flatCpl}" min="0"><div class="note">This channel typically sells on a cost-per-lead basis rather than impressions/clicks.</div></div>
+    `;
+  }
+  panel.innerHTML = `
+    <span class="tag">${PLATFORMS.find(p=>p.id===state.platform).label} · ${state.format}</span>
+    <h2>10. Estimated CPL and quality KPIs</h2>
+    <p class="hint">Defaults are directional SA B2B tech benchmarks. The ICP completeness adjusts the starting CVR assumption; replace it with account data as soon as you have enough signal.</p>
+    <div class="calc-grid">
+      <div>${fieldsHtml}</div>
+      <div id="resultWrap"></div>
+    </div>
+    <div class="brief-card">
+      <h3>Campaign brief ready</h3>
+      <p>Export the completed strategy as a presentation for client review, internal approval or a media buying handover.</p>
+      <div class="brief-meta"><span>${state.platforms.length || 1} platform${(state.platforms.length || 1) === 1 ? '' : 's'}</span><span>${state.objective ? OBJECTIVES.find(o=>o.id===state.objective).label : 'Campaign plan'}</span><span>ICP + budget + measurement included</span></div>
+      <div class="nav-row" style="margin-top:14px"><span></span><button class="btn primary" id="downloadBrief">Download campaign brief (.ppt)</button></div>
+    </div>
+    <p class="footnote">This is a planning estimate, not a guarantee — actual CPL depends on targeting precision, creative quality, competition and offer strength. Revisit with real account data once the campaign has spent.</p>
+    <div class="nav-row">
+      <button class="btn" id="back">← Back</button>
+      <button class="btn primary" id="restart">Start over</button>
+    </div>
+  `;
+  const resultWrap = panel.querySelector('#resultWrap');
+  function calc(){
+    const budget = parseFloat(panel.querySelector('#budget').value) || 0;
+    let impressions=0, clicks=0, leads=0, cpl=0;
+    if(est.mode === 'cpm'){
+      const cpm = parseFloat(panel.querySelector('#cpm').value) || 0;
+      const ctr = parseFloat(panel.querySelector('#ctr').value) || 0;
+      const cvr = parseFloat(panel.querySelector('#cvr').value) || 0;
+      impressions = cpm > 0 ? (budget / cpm) * 1000 : 0;
+      clicks = impressions * (ctr/100);
+      leads = clicks * (cvr/100);
+      cpl = leads > 0 ? budget/leads : 0;
+      resultWrap.innerHTML = `
+        <div class="result-box">
+          <div class="lbl">Estimated CPL</div>
+          <div class="big">${cpl>0 ? 'R'+cpl.toFixed(0) : '—'}</div>
+          <div class="result-row"><span>Impressions</span><span>${Math.round(impressions).toLocaleString()}</span></div>
+          <div class="result-row"><span>Clicks</span><span>${Math.round(clicks).toLocaleString()}</span></div>
+          <div class="result-row"><span>Estimated leads</span><span>${leads>=1?Math.round(leads).toLocaleString():leads.toFixed(1)}</span></div>
+        </div>
+      `;
+    } else if(est.mode === 'cpc'){
+      const cpc = parseFloat(panel.querySelector('#cpc').value) || 0;
+      const cvr = parseFloat(panel.querySelector('#cvr').value) || 0;
+      clicks = cpc > 0 ? budget / cpc : 0;
+      leads = clicks * (cvr/100);
+      cpl = leads > 0 ? budget/leads : 0;
+      resultWrap.innerHTML = `
+        <div class="result-box">
+          <div class="lbl">Estimated CPL</div>
+          <div class="big">${cpl>0 ? 'R'+cpl.toFixed(0) : '—'}</div>
+          <div class="result-row"><span>Clicks</span><span>${Math.round(clicks).toLocaleString()}</span></div>
+          <div class="result-row"><span>Estimated leads</span><span>${leads>=1?Math.round(leads).toLocaleString():leads.toFixed(1)}</span></div>
+        </div>
+      `;
+    } else {
+      const flatCpl = parseFloat(panel.querySelector('#flatCpl').value) || 0;
+      leads = flatCpl > 0 ? budget/flatCpl : 0;
+      resultWrap.innerHTML = `
+        <div class="result-box">
+          <div class="lbl">Estimated CPL</div>
+          <div class="big">${flatCpl>0 ? 'R'+flatCpl.toFixed(0) : '—'}</div>
+          <div class="result-row"><span>Estimated leads at this budget</span><span>${leads>=1?Math.round(leads).toLocaleString():leads.toFixed(1)}</span></div>
+        </div>
+      `;
+    }
+  }
+  function downloadBrief(){
+    const budget = parseFloat(panel.querySelector('#budget').value) || 0;
+    const cvr = panel.querySelector('#cvr') ? parseFloat(panel.querySelector('#cvr').value) || 0 : 0;
+    const cplText = resultWrap.querySelector('.big') ? resultWrap.querySelector('.big').textContent : '—';
+    const platforms = state.platforms.length ? state.platforms : [state.platform];
+    const platformLabels = platforms.map(id=>PLATFORMS.find(p=>p.id===id).label);
+    const icp = state.icp;
+    const list = items => `<ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul>`;
+    const allocationRows = platforms.map(id=>`<tr><td>${PLATFORMS.find(p=>p.id===id).label}</td><td>${state.allocation[id] || Math.round(100/platforms.length)}%</td><td>R${Math.round(budget * (state.allocation[id] || 100/platforms.length)/100).toLocaleString()}</td></tr>`).join('');
+    const campaignName = state.tracking.campaign || 'media-campaign';
+    const safeName = campaignName.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'campaign-brief';
+    const slide = (title, subtitle, body) => `<section class="ppt-slide"><h1>${title}</h1><h2>${subtitle}</h2>${body}</section>`;
+    const presentation = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:p="urn:schemas-microsoft-com:office:powerpoint" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><title>${campaignName} Campaign Brief</title><style>
+      body{font-family:Arial,sans-serif;color:#181818;background:#fff;margin:0}.ppt-slide{page-break-after:always;padding:54px 64px;min-height:620px}h1{font-size:31px;color:#181818;margin:0 0 12px;border-bottom:4px solid #ef661f;padding-bottom:12px}h2{font-size:17px;color:#686863;margin:0 0 24px}h3{font-size:18px;color:#181818;margin:22px 0 7px}p,li,td,th{font-size:14px;line-height:1.45}ul{padding-left:23px}li{margin:7px 0}.key{background:#f4eee9;padding:15px 18px;margin:12px 0;border-left:4px solid #ef661f}.muted{color:#686863}.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid #dedbd4;text-align:left;padding:9px}th{color:#686863;text-transform:uppercase;font-size:11px}.footer{color:#686863;font-size:11px;margin-top:40px}</style></head><body>
+      ${slide('Campaign brief', campaignName, `<div class="key"><h3>Campaign goal</h3><p>${state.goal || 'Goal not specified.'}</p></div><p class="muted">Prepared by Blacfox Media Advisor · ${new Date().toLocaleDateString('en-ZA')}</p>`)}
+      ${slide('Audience and objective', 'Who we are trying to reach', `<div class="grid"><div><h3>ICP</h3>${list([`Industry: ${icp.industry || 'To be confirmed'}`,`Company size: ${icp.companySize || 'To be confirmed'}`,`Job function: ${icp.jobFunction || 'To be confirmed'}`,`Seniority: ${icp.seniority || 'To be confirmed'}`,`Geography: ${icp.geography || 'To be confirmed'}`])}</div><div><h3>Campaign objective</h3><p>${state.objective ? OBJECTIVES.find(o=>o.id===state.objective).label : 'To be confirmed'}</p><h3>Exclusions</h3><p>${icp.exclusions.length ? icp.exclusions.join(', ') : 'Suppression audiences to be confirmed'}</p></div></div>`)}
+      ${slide('Channel and budget plan', 'Where the investment goes', `<p>${platformLabels.join(' + ')}</p><table><thead><tr><th>Platform</th><th>Share</th><th>Monthly budget</th></tr></thead><tbody>${allocationRows}</tbody></table><h3>Pacing</h3><p>R${budget.toLocaleString()} per month across a ${state.pacing.duration}-month flight. Average daily ceiling: R${Math.round(budget/30).toLocaleString()}.</p>`)}
+      ${slide('Funnel, creative and measurement', 'How performance will be built and judged', `<h3>Funnel sequence</h3>${list(platformLabels.map((label,index)=>`Stage ${index+1}: ${label} — ${index===0 ? 'build qualified reach' : index===1 ? 'capture active intent' : 'retarget and convert'}${index < platformLabels.length-1 ? ' · timing to be confirmed' : ''}`))}<div class="grid"><div><h3>Testing</h3><p>${state.testing.variants} variants isolating the ${state.testing.isolate.toLowerCase()}. Judge only after ${state.testing.threshold || 'an agreed conversion'} minimum conversions.</p></div><div><h3>KPIs</h3><p>CTR, CPM, CVR, CPL, lead-to-MQL rate and lead-to-pipeline value. Forecast CPL: ${cplText}. Forecast CVR assumption: ${cvr}%.</p></div></div><h3>Attribution</h3><p>${state.attribution === 'multi-touch' ? 'Multi-touch influence across the journey.' : 'Single-touch credit to the final converting channel.'}</p>`)}
+      ${slide('Launch governance', 'What must be ready before spend goes live', `<h3>Approval gate</h3>${list(['Brief and ICP approved','Budget and flight dates approved','Platform tracking and CRM/offline conversion path verified','POPIA consent language approved','Creative owner and turnaround confirmed','Accessibility, captions and platform safe zones checked'])}<p class="footer">Planning estimate only. Validate platform specifications, legal wording and account benchmarks before launch.</p>`)}
+      </body></html>`;
+    const blob = new Blob([presentation], {type:'application/vnd.ms-powerpoint'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${safeName}-campaign-brief.ppt`;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(()=>{ URL.revokeObjectURL(link.href); link.remove(); }, 1000);
+  }
+  panel.querySelectorAll('input').forEach(inp => inp.addEventListener('input', calc));
+  calc();
+  panel.querySelector('#downloadBrief').onclick = downloadBrief;
+  panel.querySelector('#back').onclick = ()=>goto(8);
+  panel.querySelector('#restart').onclick = ()=>{ location.reload(); };
+}
+
+render();
+</script>
+</body>
+</html>
