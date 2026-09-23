@@ -812,9 +812,20 @@ async function renderSuperAdmin(){
     </div>
     <div class="pin-error" id="rosterError"></div>
     <div id="rosterList">${rows || '<div class="screen-sub">No team members yet.</div>'}</div>
-    <span class="link-back" id="backHome">&larr; ${state.isHost ? 'Back to dashboard' : 'Back to start'}</span>
+    <div class="host-danger">
+      <button class="reset-btn" id="hardResetBtn">Hard reset voting (fix a freeze)</button>
+      <span class="link-back" id="backHome">&larr; ${state.isHost ? 'Back to dashboard' : 'Back to start'}</span>
+    </div>
   `;
   document.getElementById('backHome').onclick = () => { state.screen = state.isHost ? 'host' : 'home'; render(); };
+  document.getElementById('hardResetBtn').onclick = async () => {
+    if(confirm('This force-clears the round for every device right now \u2014 use it if voting has frozen or gotten stuck. All current signups and votes will be lost. Continue?')){
+      await clearSignups();
+      await clearVotes();
+      await setVotingStatus({ status:'setup', closedAt:null, tieNames:[] });
+      showVoteToast('Voting has been hard reset. Everyone can sign up again.');
+    }
+  };
   const errorEl = document.getElementById('rosterError');
   document.getElementById('addNameBtn').onclick = async () => {
     const field = document.getElementById('newNameField');
