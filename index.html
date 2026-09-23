@@ -513,6 +513,7 @@ const ROSTER = ["Mtiwabo","Jaydon","Olwethu","Benita","Jerome","Amjad","Tonderai
  
 const HOST_PIN = "2620";
 const COUNTDOWN_SECONDS = 10;
+const AUTO_RESET_MS = 10 * 60 * 1000; // wipe a finished round on its own if the host never resets it
  
 const card = document.getElementById('card');
 const heading = document.getElementById('heading');
@@ -604,6 +605,23 @@ function tallyVotes(votes){
   ROSTER.forEach(n => tally[n] = 0);
   Object.values(votes).forEach(v => { if(tally[v.candidate] !== undefined) tally[v.candidate]++; });
   return tally;
+}
+
+function computeWinners(tally){
+  const maxVotes = Math.max(0, ...Object.values(tally));
+  const winners = maxVotes > 0 ? ROSTER.filter(name => tally[name] === maxVotes) : [];
+  return { maxVotes, winners };
+}
+
+// Tallies whatever votes exist right now and publishes the result immediately, so the
+// reveal never depends on any single device (host included) staying open long enough
+// for a delayed timer to fire.
+async function finalizeRound(closedAt){
+  const votes = await getVotes();
+  const tally = tallyVotes(votes);
+  const { winners } = computeWinners(tally);
+  await setVotingStatus({ status: winners.length > 1 ? 'tie' : 'published', closedAt, tieNames: winners });
+  return winners;
 }
  
 // ---------- render dispatcher ----------
@@ -985,7 +1003,9 @@ async function drawHost(){
     if(status.status !== 'open') return;
     if(confirm('Stop voting for everyone right now? No further signups or votes will be accepted.')){
       const closedAt = Date.now();
-      await setVotingStatus({ status:'closed', closedAt, tieNames:status.tieNames || [] });
+      // finalize the tally right away instead of waiting for a later timer tick, so the
+      // result doesn't depend on this device's tab/timer staying active in the background
+      await finalizeRound(closedAt);
       stopPoll();
       state.closedAt = closedAt;
       state.screen = 'countdown';
@@ -1011,12 +1031,13 @@ function renderCountdown(){
     <div class="countdown-num" id="countNum">${COUNTDOWN_SECONDS}</div>
   `;
   const numEl = document.getElementById('countNum');
-  // every device (not just the host) checks the shared status every tick, so the
-  // reveal happens within ~300ms on all screens instead of waiting on the slower global watcher.
+  // Any device runs this tick, so the reveal is resilient to the host's tab
+  // being backgrounded or closed once results are finalized.
   const tick = async () => {
     const elapsed = Math.floor((Date.now() - state.closedAt) / 1000);
     const remaining = Math.max(0, COUNTDOWN_SECONDS - elapsed);
     numEl.textContent = remaining;
+    if(remaining > 0) return;
     const status = await getVotingStatus();
     if(status.status === 'published' || status.status === 'tie'){
       stopPoll();
@@ -1024,12 +1045,11 @@ function renderCountdown(){
       state.screen = 'winner';
       return render();
     }
-    if(remaining <= 0 && state.isHost && status.status === 'closed'){
-      const votes = await getVotes();
-      const tally = tallyVotes(votes);
-      const maxVotes = Math.max(0, ...Object.values(tally));
-      const winners = maxVotes > 0 ? ROSTER.filter(name=>tally[name] === maxVotes) : [];
-      await setVotingStatus({ status:winners.length > 1 ? 'tie' : 'published', closedAt:state.closedAt, tieNames:winners });
+    // Safety net: results should already have been finalized the moment voting was
+    // stopped, but if that write ever failed (or a stale 'closed' round is stuck),
+    // any device can finalize once the countdown has run out.
+    if(status.status === 'closed'){
+      await finalizeRound(state.closedAt);
       stopPoll();
       state.screen = 'winner';
       render();
@@ -1040,14 +1060,23 @@ function renderCountdown(){
 }
  
 // ---------- WINNER ----------
+let tieToastShownFor = null;
 async function renderWinner(){
   setHeader('RESULTS', 'And the winner is...');
   const status = await getVotingStatus();
   const votes = await getVotes();
   const tally = tallyVotes(votes);
-  const maxVotes = Math.max(...Object.values(tally));
-  const winners = status.tieNames && status.tieNames.length ? status.tieNames : (maxVotes > 0 ? ROSTER.filter(n => tally[n] === maxVotes) : []);
+  const { winners: computedWinners } = computeWinners(tally);
+  const winners = status.tieNames && status.tieNames.length ? status.tieNames : computedWinners;
   const totalVotes = Object.keys(votes).length;
+
+  if(status.status === 'tie' && winners.length > 1){
+    const tieKey = winners.slice().sort().join(',') + '|' + status.closedAt;
+    if(tieToastShownFor !== tieKey){
+      tieToastShownFor = tieKey;
+      showVoteToast(`It's a tie between ${winners.join(' & ')}! Everyone votes again to pick the winner.`);
+    }
+  }
  
   let winnerBlock;
   if(winners.length === 0){
@@ -1153,13 +1182,27 @@ function startWatcher(){
     const closedScreens = ['home','pickVoter','confirmVoter','voteWait','vote','confirmVote','receipt','alreadyVoted'];
     const preVoteScreens = ['home','closedNotice','pickVoter','confirmVoter'];
     const eligible = state.signedUp || state.isHost;
+    // a finished round that nobody acts on shouldn't stay stuck forever — any device can wipe it
+    if((status.status === 'tie' || status.status === 'published') && status.closedAt && (Date.now() - status.closedAt) >= AUTO_RESET_MS){
+      await clearSignups();
+      await clearVotes();
+      await setVotingStatus({ status:'setup', closedAt:null, tieNames:[] });
+      lastVotingStatus = 'setup';
+      if(!state.isHost){
+        resetLocalState(false);
+        showVoteToast('This round timed out after 10 minutes of inactivity \u2014 please sign up again.');
+      } else if(state.screen !== 'host'){
+        state.screen = 'host';
+      }
+      return render();
+    }
     if(status.status === 'open' && lastVotingStatus && lastVotingStatus !== 'open' && !state.isHost && preVoteScreens.includes(state.screen)){
       showVoteToast(state.me ? `${state.me}, the host has enabled you to vote!` : 'The host has enabled you to vote!');
     }
-    // a host reset wipes every signup/vote, so sign every voter back out to the start screen
+    // a host reset (manual or automatic) wipes every signup/vote, so sign every voter back out to the start screen
     if(status.status === 'setup' && lastVotingStatus && lastVotingStatus !== 'setup' && !state.isHost && state.screen !== 'home'){
       resetLocalState(false);
-      showVoteToast('The host has reset the round \u2014 please sign up again.');
+      showVoteToast('The round has been reset \u2014 please sign up again.');
       render();
     }
     if(status.status === 'closed' && eligible && closedScreens.includes(state.screen)){
