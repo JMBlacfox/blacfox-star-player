@@ -721,7 +721,7 @@ async function renderHome(){
       <button class="big-btn primary" id="btnVoter">Sign up to vote <span class="arrow">&rarr;</span></button>
       <button class="big-btn ghost" id="btnHost">Sign up as host <span class="arrow">&rarr;</span></button>
     </div>
-    <span class="link-back" id="btnSuperAdmin">Super admin: manage player roster</span>
+    <span class="link-back" id="btnSuperAdmin">Super admin: manage team member roster</span>
   `;
   document.getElementById('btnVoter').onclick = () => { state.screen='pickVoter'; render(); };
   document.getElementById('btnHost').onclick = () => { state.screen='hostPin'; render(); };
@@ -763,12 +763,12 @@ function renderHostPin(){
   field.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryEnter(); });
 }
  
-// ---------- SUPER ADMIN (manage player roster) ----------
+// ---------- SUPER ADMIN (manage team member roster) ----------
 function renderSuperAdminPin(){
   setHeader('SUPER ADMIN', 'Enter admin PIN');
   card.innerHTML = `
     <div class="screen-title">Roster management</div>
-    <div class="screen-sub">Enter the super admin PIN to add or remove players.</div>
+    <div class="screen-sub">Enter the super admin PIN to add or remove team members.</div>
     <input class="pin-input" id="pinField" type="password" inputmode="numeric" maxlength="6" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;">
     <div class="pin-error" id="pinError"></div>
     <div class="actions">
@@ -794,7 +794,7 @@ function renderSuperAdminPin(){
 }
  
 async function renderSuperAdmin(){
-  setHeader('SUPER ADMIN', 'Manage player roster');
+  setHeader('SUPER ADMIN', 'Manage team member roster');
   card.innerHTML = `<div class="screen-sub">Loading roster&hellip;</div>`;
   await loadRoster();
   const rows = ROSTER.map(name => `
@@ -805,13 +805,13 @@ async function renderSuperAdmin(){
   `).join('');
   card.innerHTML = `
     <div class="screen-title">Manage roster</div>
-    <div class="screen-sub">Add a new player so they show up on the sign-up screen, or remove someone who shouldn't be listed. Changes apply to every device immediately.</div>
+    <div class="screen-sub">Add a new team member so they show up on the sign-up screen, or remove someone who shouldn't be listed. Changes apply to every device immediately.</div>
     <div class="actions" style="margin-bottom:12px;">
-      <input class="pin-input" id="newNameField" style="letter-spacing:normal;font-size:15px;text-align:left;padding:12px 14px;" type="text" maxlength="40" placeholder="New player name">
+      <input class="pin-input" id="newNameField" style="letter-spacing:normal;font-size:15px;text-align:left;padding:12px 14px;" type="text" maxlength="40" placeholder="New team member name">
       <button class="action-btn confirm" id="addNameBtn" style="flex:0 0 auto;">Add</button>
     </div>
     <div class="pin-error" id="rosterError"></div>
-    <div id="rosterList">${rows || '<div class="screen-sub">No players yet.</div>'}</div>
+    <div id="rosterList">${rows || '<div class="screen-sub">No team members yet.</div>'}</div>
     <span class="link-back" id="backHome">&larr; ${state.isHost ? 'Back to dashboard' : 'Back to start'}</span>
   `;
   document.getElementById('backHome').onclick = () => { state.screen = state.isHost ? 'host' : 'home'; render(); };
