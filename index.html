@@ -807,9 +807,11 @@ function renderClosedNotice(){
     <div class="closed-banner">The host has not opened voting yet, or voting has already closed for this round. Please wait for the host to open the ballot.</div>
     <div class="btn-row">
       <button class="big-btn ghost" id="btnBack">Back to start <span class="arrow">&rarr;</span></button>
+      <button class="big-btn ghost" id="btnHost">Sign up as host <span class="arrow">&rarr;</span></button>
     </div>
   `;
   document.getElementById('btnBack').onclick = () => { resetLocalState(false); render(); };
+  document.getElementById('btnHost').onclick = () => { state.screen='hostPin'; render(); };
 }
  
 // ---------- VOTE ----------
@@ -1195,6 +1197,12 @@ function startWatcher(){
         state.screen = 'host';
       }
       return render();
+    }
+    // 'closed' should only ever be momentary (stop voting finalizes instantly); if a stale
+    // row is ever found in this state, any device can finalize it rather than staying stuck
+    if(status.status === 'closed' && status.closedAt){
+      await finalizeRound(status.closedAt);
+      return;
     }
     if(status.status === 'open' && lastVotingStatus && lastVotingStatus !== 'open' && !state.isHost && preVoteScreens.includes(state.screen)){
       showVoteToast(state.me ? `${state.me}, the host has enabled you to vote!` : 'The host has enabled you to vote!');
