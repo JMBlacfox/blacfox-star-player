@@ -917,10 +917,13 @@ function renderAlreadyVoted(){
  
 // ---------- HOST ----------
 let dismissedRoundAt = null; // closedAt of the round the host chose to 'Close' back to the dashboard
+let hostGen = 0; // guards against a stale in-flight renderHost/drawHost overwriting a newer screen
 async function renderHost(){
   setHeader('HOST VIEW', 'Consolidated results');
   card.innerHTML = `<div class="screen-sub">Loading live data&hellip;</div>`;
+  const myGen = ++hostGen;
   const status = await getVotingStatus();
+  if(myGen !== hostGen) return; // a newer render (or screen change) has since taken over
   const isFinishedRound = status.status === 'closed' || ((status.status === 'tie' || status.status === 'published') && status.closedAt !== dismissedRoundAt);
   if(isFinishedRound){
     state.closedAt = status.closedAt;
@@ -930,6 +933,7 @@ async function renderHost(){
   await drawHost();
   pollTimer = setInterval(async () => {
     const s = await getVotingStatus();
+    if(myGen !== hostGen) return;
     const stillFinished = s.status === 'closed' || ((s.status === 'tie' || s.status === 'published') && s.closedAt !== dismissedRoundAt);
     if(stillFinished){
       stopPoll();
@@ -1061,10 +1065,12 @@ function renderCountdown(){
  
 // ---------- WINNER ----------
 let tieToastShownFor = null;
+let winnerGen = 0; // guards against a stale in-flight renderWinner overwriting a newer screen
 async function renderWinner(){
-  setHeader('RESULTS', 'And the winner is...');
+  const myGen = ++winnerGen;
   const status = await getVotingStatus();
   const votes = await getVotes();
+  if(myGen !== winnerGen) return; // a newer render (or screen change) has since taken over
   const tally = tallyVotes(votes);
   const { winners: computedWinners } = computeWinners(tally);
   const winners = status.tieNames && status.tieNames.length ? status.tieNames : computedWinners;
@@ -1093,6 +1099,7 @@ async function renderWinner(){
     `;
   }
  
+  setHeader('RESULTS', 'And the winner is...');
   card.innerHTML = `
     <div class="winner-wrap" id="winnerWrap">
       <div class="fire-row">&#128293; &#127881; &#128293;</div>
