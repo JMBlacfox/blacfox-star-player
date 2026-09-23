@@ -920,7 +920,7 @@ async function renderHost(){
   setHeader('HOST VIEW', 'Consolidated results');
   card.innerHTML = `<div class="screen-sub">Loading live data&hellip;</div>`;
   const status = await getVotingStatus();
-  if(status.status === 'closed'){
+  if(status.status === 'closed' || status.status === 'tie' || status.status === 'published'){
     state.closedAt = status.closedAt;
     state.screen = 'countdown';
     return render();
@@ -928,7 +928,7 @@ async function renderHost(){
   await drawHost();
   pollTimer = setInterval(async () => {
     const s = await getVotingStatus();
-    if(s.status === 'closed'){
+    if(s.status === 'closed' || s.status === 'tie' || s.status === 'published'){
       stopPoll();
       state.closedAt = s.closedAt;
       state.screen = 'countdown';
@@ -1096,12 +1096,15 @@ async function renderWinner(){
       ${winnerBlock}
       <div class="btn-row" style="margin-top:10px;">
         ${state.isHost ? (status.status === 'tie' ? '<button class="action-btn confirm" id="tieRoundBtn">Open tie-break vote</button>' : '<button class="reset-btn" id="newRoundBtn">Start a new round</button>') : '<span class="link-back" id="doneBtn">Waiting for the host</span>'}
+        ${state.isHost ? '<span class="link-back" id="closeBtn">Close &amp; back to dashboard</span>' : ''}
       </div>
     </div>
   `;
   spawnConfetti(document.getElementById('winnerWrap'));
   spawnCelebration(document.getElementById('winnerWrap'));
   if(state.isHost){
+    const closeBtn = document.getElementById('closeBtn');
+    if(closeBtn) closeBtn.onclick = () => { state.screen = 'host'; render(); };
     const tieRoundBtn = document.getElementById('tieRoundBtn');
     if(tieRoundBtn) tieRoundBtn.onclick = async () => {
       await clearVotes();
