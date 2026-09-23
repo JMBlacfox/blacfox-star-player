@@ -353,6 +353,29 @@ h1{
 .status-chip.signed{ color: var(--navy); border-color: var(--navy); }
 .status-chip.voted{ background: var(--navy); color:#fff; border-color:var(--navy); }
  
+.roster-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--paper-line);
+  border-radius:9px;
+  background:#fff;
+  margin-bottom:8px;
+  font-size:14px;
+}
+.roster-remove{
+  background:none;
+  border:1px solid var(--stamp);
+  color: var(--stamp);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  padding:6px 10px;
+  border-radius:6px;
+  cursor:pointer;
+}
+ 
 .host-danger{
   margin-top:22px;
   padding-top:16px;
@@ -507,11 +530,13 @@ button:disabled{cursor:not-allowed;}
  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const ROSTER = ["Mtiwabo","Jaydon","Olwethu","Benita","Jerome","Amjad","Tonderai",
+const FALLBACK_ROSTER = ["Mtiwabo","Jaydon","Olwethu","Benita","Jerome","Amjad","Tonderai",
 "Pinto","Laroche","Amilio","Marlon","Fayaadh","Indipile","Rachel",
 "Rinolan","Nomonde","Malaika","Emilio","Tyrone","Stephan","Yudhveer","Payal","KG"];
+let ROSTER = FALLBACK_ROSTER.slice(); // kept in sync with the 'roster' table so the host/admin can add players without editing code
  
 const HOST_PIN = "2620";
+const SUPER_ADMIN_PIN = "571844";
 const COUNTDOWN_SECONDS = 10;
 const AUTO_RESET_MS = 10 * 60 * 1000; // wipe a finished round on its own if the host never resets it
  
@@ -552,6 +577,30 @@ async function getSignups(){
   const { data, error } = await supabaseClient.from('signups').select('name');
   if(error){ console.error('getSignups error', error); return []; }
   return data.map(r => r.name);
+}
+ 
+async function getRosterNames(){
+  const { data, error } = await supabaseClient.from('roster').select('name').order('created_at', { ascending: true });
+  if(error){ console.error('getRosterNames error', error); return []; }
+  return data.map(r => r.name);
+}
+ 
+async function addRosterName(name){
+  const { error } = await supabaseClient.from('roster').upsert({ name });
+  if(error) console.error('addRosterName error', error);
+  return !error;
+}
+ 
+async function removeRosterName(name){
+  const { error } = await supabaseClient.from('roster').delete().eq('name', name);
+  if(error) console.error('removeRosterName error', error);
+  return !error;
+}
+ 
+// Pulls the latest roster from the DB; keeps the hardcoded FALLBACK_ROSTER if the table is empty/unreachable
+async function loadRoster(){
+  const names = await getRosterNames();
+  if(names.length) ROSTER = names;
 }
  
 async function addSignup(name){
@@ -644,6 +693,8 @@ async function render(){
   if(state.screen === 'countdown') return renderCountdown();
   if(state.screen === 'winner') return renderWinner();
   if(state.screen === 'closedNotice') return renderClosedNotice();
+  if(state.screen === 'superAdminPin') return renderSuperAdminPin();
+  if(state.screen === 'superAdmin') return renderSuperAdmin();
 }
  
 function resetLocalState(keepHost){
@@ -670,9 +721,11 @@ async function renderHome(){
       <button class="big-btn primary" id="btnVoter">Sign up to vote <span class="arrow">&rarr;</span></button>
       <button class="big-btn ghost" id="btnHost">Sign up as host <span class="arrow">&rarr;</span></button>
     </div>
+    <span class="link-back" id="btnSuperAdmin">Super admin: manage player roster</span>
   `;
   document.getElementById('btnVoter').onclick = () => { state.screen='pickVoter'; render(); };
   document.getElementById('btnHost').onclick = () => { state.screen='hostPin'; render(); };
+  document.getElementById('btnSuperAdmin').onclick = () => { state.screen='superAdminPin'; render(); };
 }
  
 // ---------- HOST PIN ----------
@@ -710,6 +763,78 @@ function renderHostPin(){
   field.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryEnter(); });
 }
  
+// ---------- SUPER ADMIN (manage player roster) ----------
+function renderSuperAdminPin(){
+  setHeader('SUPER ADMIN', 'Enter admin PIN');
+  card.innerHTML = `
+    <div class="screen-title">Roster management</div>
+    <div class="screen-sub">Enter the super admin PIN to add or remove players.</div>
+    <input class="pin-input" id="pinField" type="password" inputmode="numeric" maxlength="6" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;">
+    <div class="pin-error" id="pinError"></div>
+    <div class="actions">
+      <button class="action-btn back" id="btnBack">Back</button>
+      <button class="action-btn confirm" id="btnConfirm">Enter</button>
+    </div>
+  `;
+  const field = document.getElementById('pinField');
+  field.focus();
+  document.getElementById('btnBack').onclick = () => { state.screen = state.isHost ? 'host' : 'home'; render(); };
+  const tryEnter = async () => {
+    if(field.value === SUPER_ADMIN_PIN){
+      state.screen = 'superAdmin';
+      render();
+    } else {
+      document.getElementById('pinError').textContent = 'Incorrect PIN, try again.';
+      field.value = '';
+      field.focus();
+    }
+  };
+  document.getElementById('btnConfirm').onclick = tryEnter;
+  field.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryEnter(); });
+}
+ 
+async function renderSuperAdmin(){
+  setHeader('SUPER ADMIN', 'Manage player roster');
+  card.innerHTML = `<div class="screen-sub">Loading roster&hellip;</div>`;
+  await loadRoster();
+  const rows = ROSTER.map(name => `
+    <div class="roster-row">
+      <span>${name}</span>
+      <button class="roster-remove" data-name="${name}">Remove</button>
+    </div>
+  `).join('');
+  card.innerHTML = `
+    <div class="screen-title">Manage roster</div>
+    <div class="screen-sub">Add a new player so they show up on the sign-up screen, or remove someone who shouldn't be listed. Changes apply to every device immediately.</div>
+    <div class="actions" style="margin-bottom:12px;">
+      <input class="pin-input" id="newNameField" style="letter-spacing:normal;font-size:15px;text-align:left;padding:12px 14px;" type="text" maxlength="40" placeholder="New player name">
+      <button class="action-btn confirm" id="addNameBtn" style="flex:0 0 auto;">Add</button>
+    </div>
+    <div class="pin-error" id="rosterError"></div>
+    <div id="rosterList">${rows || '<div class="screen-sub">No players yet.</div>'}</div>
+    <span class="link-back" id="backHome">&larr; ${state.isHost ? 'Back to dashboard' : 'Back to start'}</span>
+  `;
+  document.getElementById('backHome').onclick = () => { state.screen = state.isHost ? 'host' : 'home'; render(); };
+  const errorEl = document.getElementById('rosterError');
+  document.getElementById('addNameBtn').onclick = async () => {
+    const field = document.getElementById('newNameField');
+    const name = field.value.trim();
+    if(!name){ errorEl.textContent = 'Enter a name first.'; return; }
+    if(ROSTER.some(n => n.toLowerCase() === name.toLowerCase())){ errorEl.textContent = `${name} is already on the roster.`; return; }
+    errorEl.textContent = '';
+    await addRosterName(name);
+    renderSuperAdmin();
+  };
+  document.querySelectorAll('.roster-remove').forEach(btn => {
+    btn.onclick = async () => {
+      if(confirm(`Remove ${btn.dataset.name} from the roster?`)){
+        await removeRosterName(btn.dataset.name);
+        renderSuperAdmin();
+      }
+    };
+  });
+}
+ 
 // ---------- PICK VOTER NAME ----------
 async function renderPickVoter(){
   setHeader('SIGN UP', 'Which one are you?');
@@ -718,6 +843,7 @@ async function renderPickVoter(){
     state.screen = 'closedNotice';
     return render();
   }
+  await loadRoster(); // pick up any players the super admin just added
   const votes = await getVotes();
   card.innerHTML = `
     <div class="screen-title">Select your name</div>
@@ -949,6 +1075,8 @@ async function renderHost(){
 async function drawHost(){
   const status = await getVotingStatus();
   if(state.screen !== 'host') return; // the screen moved on (e.g. voting was stopped) while this was loading
+  await loadRoster(); // pick up any players the super admin just added
+  if(state.screen !== 'host') return;
   const [signups, votes] = await Promise.all([getSignups(), getVotes()]);
   if(state.screen !== 'host') return;
   const tally = tallyVotes(votes);
@@ -987,10 +1115,12 @@ async function drawHost(){
     <div class="roster-status">${chips}</div>
     <div class="host-danger">
       <button class="reset-btn" id="resetBtn">Reset all signups &amp; votes</button>
+      <span class="link-back" id="manageRosterBtn">Manage roster</span>
       <span class="link-back" id="backHome">Back to start</span>
     </div>
   `;
   document.getElementById('backHome').onclick = () => { state.screen='home'; render(); };
+  document.getElementById('manageRosterBtn').onclick = () => { state.screen='superAdminPin'; render(); };
   const openBtn = document.getElementById('openBtn');
   if(openBtn) openBtn.onclick = async () => {
     if(status.status === 'open' || status.status === 'tie') return;
@@ -1241,9 +1371,12 @@ function startWatcher(){
   }, 2500);
 }
  
-(async () => { lastVotingStatus = (await getVotingStatus()).status; })();
-render();
-startWatcher();
+(async () => {
+  await loadRoster();
+  lastVotingStatus = (await getVotingStatus()).status;
+  render();
+  startWatcher();
+})();
 </script>
 </body>
 </html>
