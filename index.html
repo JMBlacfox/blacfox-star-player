@@ -916,11 +916,13 @@ function renderAlreadyVoted(){
 }
  
 // ---------- HOST ----------
+let dismissedRoundAt = null; // closedAt of the round the host chose to 'Close' back to the dashboard
 async function renderHost(){
   setHeader('HOST VIEW', 'Consolidated results');
   card.innerHTML = `<div class="screen-sub">Loading live data&hellip;</div>`;
   const status = await getVotingStatus();
-  if(status.status === 'closed' || status.status === 'tie' || status.status === 'published'){
+  const isFinishedRound = status.status === 'closed' || ((status.status === 'tie' || status.status === 'published') && status.closedAt !== dismissedRoundAt);
+  if(isFinishedRound){
     state.closedAt = status.closedAt;
     state.screen = 'countdown';
     return render();
@@ -928,7 +930,8 @@ async function renderHost(){
   await drawHost();
   pollTimer = setInterval(async () => {
     const s = await getVotingStatus();
-    if(s.status === 'closed' || s.status === 'tie' || s.status === 'published'){
+    const stillFinished = s.status === 'closed' || ((s.status === 'tie' || s.status === 'published') && s.closedAt !== dismissedRoundAt);
+    if(stillFinished){
       stopPoll();
       state.closedAt = s.closedAt;
       state.screen = 'countdown';
@@ -1104,7 +1107,7 @@ async function renderWinner(){
   spawnCelebration(document.getElementById('winnerWrap'));
   if(state.isHost){
     const closeBtn = document.getElementById('closeBtn');
-    if(closeBtn) closeBtn.onclick = () => { state.screen = 'host'; render(); };
+    if(closeBtn) closeBtn.onclick = () => { dismissedRoundAt = status.closedAt; state.screen = 'host'; render(); };
     const tieRoundBtn = document.getElementById('tieRoundBtn');
     if(tieRoundBtn) tieRoundBtn.onclick = async () => {
       await clearVotes();
