@@ -933,7 +933,7 @@ async function renderHost(){
   await drawHost();
   pollTimer = setInterval(async () => {
     const s = await getVotingStatus();
-    if(myGen !== hostGen) return;
+    if(myGen !== hostGen || state.screen !== 'host') return;
     const stillFinished = s.status === 'closed' || ((s.status === 'tie' || s.status === 'published') && s.closedAt !== dismissedRoundAt);
     if(stillFinished){
       stopPoll();
@@ -948,7 +948,9 @@ async function renderHost(){
  
 async function drawHost(){
   const status = await getVotingStatus();
+  if(state.screen !== 'host') return; // the screen moved on (e.g. voting was stopped) while this was loading
   const [signups, votes] = await Promise.all([getSignups(), getVotes()]);
+  if(state.screen !== 'host') return;
   const tally = tallyVotes(votes);
   const totalVotes = Object.keys(votes).length;
   const maxVotes = Math.max(1, ...Object.values(tally));
