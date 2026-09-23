@@ -785,15 +785,10 @@ async function renderVoteWait(){
       showVoteToast(`${state.me}, the host has enabled you to vote!`);
       state.screen = 'vote';
       render();
-    } else if(status.status === 'closed'){
+    } else if(status.status === 'closed' || status.status === 'tie' || status.status === 'published'){
       stopPoll();
       state.closedAt = status.closedAt;
       state.screen = 'countdown';
-      render();
-    } else if(status.status === 'tie' || status.status === 'published'){
-      stopPoll();
-      state.closedAt = status.closedAt;
-      state.screen = 'winner';
       render();
     }
   };
@@ -1217,9 +1212,11 @@ function startWatcher(){
       state.closedAt = status.closedAt;
       state.screen = 'countdown';
       render();
-    } else if((status.status === 'tie' || status.status === 'published') && eligible && ['countdown','receipt','alreadyVoted'].includes(state.screen)){
-      state.closedAt = status.closedAt;
-      state.screen = 'winner';
+    } else if((status.status === 'tie' || status.status === 'published') && eligible && ['receipt','alreadyVoted'].includes(state.screen)){
+      // route through the countdown screen (not straight to winner) so the reveal
+      // animation always plays out, even though results are now finalized instantly
+      state.closedAt = status.closedAt || Date.now();
+      state.screen = 'countdown';
       render();
     } else if(status.status === 'open' && !state.isHost && (state.screen === 'countdown' || state.screen === 'winner' || state.screen === 'closedNotice')){
       resetLocalState(false);
