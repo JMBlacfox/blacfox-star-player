@@ -957,18 +957,17 @@ async function renderVote(){
     <div class="name-grid" id="grid"></div>
   `;
   const grid = document.getElementById('grid');
-  candidates.forEach(name => {
-    const btn = document.createElement('button');
-    btn.className = 'name-pill';
-    btn.textContent = name;
-    if(name === state.me){
-      btn.disabled = true;
-      btn.innerHTML = name + '<span class="voted-tag">you can\'t vote for yourself</span>';
-    } else {
-      btn.onclick = () => { state.pickedCandidate = name; state.screen='confirmVote'; render(); };
-    }
-    grid.appendChild(btn);
-  });
+candidates.forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'name-pill';
+  btn.textContent = name;
+  if (name === state.me) {
+    btn.disabled = true;
+  } else {
+    btn.onclick = () => { state.pickedCandidate = name; state.screen = 'confirmVote'; render(); };
+  }
+  grid.appendChild(btn);
+});
 }
  
 function renderConfirmVote(){
